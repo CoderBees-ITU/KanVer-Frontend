@@ -1,24 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:kanver/src/login/login.dart';
-
-// void main(){
-//   runApp(MaterialApp(
-//     home: MyApp()
-//   ));
-// }
+import 'package:kanver/src/request-details/requestDetails.dart';
 
 void main() {
   runApp(
     MaterialApp(
       title: 'KanVer',
-      // Start the app with the "/" named route. In this case, the app starts
-      // on the FirstScreen widget.
+      theme: ThemeData(
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: AppBarTheme(
+          backgroundColor: Color(0xFFFEF7FF),
+          centerTitle: true,
+          iconTheme: IconThemeData(
+            color: Color(0xFF1D1B20),
+            size: 18, // Change the back icon size
+          ),
+          titleTextStyle: TextStyle(
+            fontSize: 22, // Başlık font boyutu
+            fontWeight: FontWeight.w400,
+            color: Colors.black,
+          ),
+        ),
+      ),
       initialRoute: '/',
       routes: {
-        // When navigating to the "/" route, build the FirstScreen widget.
         '/': (context) => MyApp(),
-        // When navigating to the "/second" route, build the SecondScreen widget.
-        '/login': (context) => Login()
+        '/login': (context) => Login(),
+        '/request-details': (context) => RequestDetails(),
       },
     ),
   );
@@ -32,15 +40,30 @@ class MyApp extends StatelessWidget {
         title: const Text('KanVer'),
       ),
       body: Center(
-        child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+        child: ListView(
+          children: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/login');
+              },
+              child: Text("Login"),
             ),
-            onPressed: () {
-              Navigator.pushNamed(context, '/login');
-            },
-            child: Text("Login")),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/request-details');
+              },
+              child: Text("Request Details"),
+            ),
+          ],
+        ),
       ),
     );
   }
