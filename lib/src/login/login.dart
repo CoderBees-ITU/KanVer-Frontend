@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_service.dart'; // Import the service
 
 class Login extends StatefulWidget {
   _LoginState createState() => _LoginState();
@@ -8,13 +9,27 @@ class _LoginState extends State<Login> {
   // Declare the form key inside the State class
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  // Declare TextEditingControllers for inputs
+  final TextEditingController _tcController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final AuthService _authService =
+      AuthService(); // Create an instance of AuthService
+
+  @override
+  void dispose() {
+    // Dispose controllers to free up resources
+    _tcController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white, // Set the background color
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 40.0),
           child: Form(
             key: _formKey, // Attach the form key for validation
             child: Column(
@@ -35,7 +50,7 @@ class _LoginState extends State<Login> {
                 SizedBox(
                     height: 18), // Space between the title and input fields
 
-                // TC LABEL
+                // TC Label
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -50,35 +65,47 @@ class _LoginState extends State<Login> {
                 SizedBox(height: 2),
 
                 // TC input field
-                TextFormField(
-                  decoration: InputDecoration(
-                    hintText: "T.C. kimlik numaranız...",
-                    hintStyle: TextStyle(
-                      color: Color(0xFF544C4C),
-                      fontFamily: 'Inter',
-                      fontSize: 14,
-                      fontWeight:
-                          FontWeight.w500, // Customize the hint text style
+
+                Container(
+                  height: 46,
+                  child: TextFormField(
+                    controller: _tcController, // Attach the controller
+                    decoration: InputDecoration(
+                      hintText: "T.C. kimlik numaranız...",
+                      hintStyle: TextStyle(
+                        color: Color(0xFF544C4C),
+                        fontFamily: 'Inter',
+                        fontSize: 14,
+                        fontWeight:
+                            FontWeight.w500, // Customize the hint text style
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 16.0,
+                        horizontal: 15.0,
+                      ),
+                      errorStyle: TextStyle(
+                        fontSize: 8,
+                        height: 0.3,
+                      ),
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6.0),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(
-                      vertical: 16.0,
-                      horizontal: 16.0,
-                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Kimlik numarası gerekli!";
+                      }
+                      if (value.length != 11) {
+                        return "Kimlik numarası 11 haneli olmalı!";
+                      }
+                      return null;
+                    },
                   ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Kimlik numarası gerekli!";
-                    }
-                    if (value.length != 11) {
-                      return "Kimlik numarası 11 haneli olmalı!";
-                    }
-                    return null;
-                  },
                 ),
+
+                // T.C. Input Field
+
                 SizedBox(height: 18), // Space between fields
 
                 // password label
@@ -96,35 +123,44 @@ class _LoginState extends State<Login> {
                 SizedBox(height: 2),
 
                 // Password Input Field (Şifre)
-                TextFormField(
-                  decoration: InputDecoration(
-                    hintText: "Şifreniz...",
-                    hintStyle: TextStyle(
-                      color: Color(0xFF544C4C),
-                      fontFamily: 'Inter',
-                      fontSize: 14,
-                      fontWeight:
-                          FontWeight.w500, // Customize the hint text style
+                Container(
+                  height: 46.0,
+                  child: TextFormField(
+                    controller: _passwordController, // Attach the controller
+                    decoration: InputDecoration(
+                      hintText: "Şifreniz...",
+                      hintStyle: TextStyle(
+                        color: Color(0xFF544C4C),
+                        fontFamily: 'Inter',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        // Customize the hint text style
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 16.0,
+                        horizontal: 15.0,
+                      ),
+                      errorStyle: TextStyle(
+                        fontSize: 8,
+                        height: 0.3,
+                      ),
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6.0),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(
-                      vertical: 15.0,
-                      horizontal: 16.0,
-                    ),
+                    obscureText: true, // To hide password input
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Şifre gerekli!";
+                      }
+                      if (value.length < 6) {
+                        return "Şifre en az 6 karakter olmalı!";
+                      }
+                      return null;
+                    },
                   ),
-                  obscureText: true, // To hide password input
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Şifre gerekli!";
-                    }
-                    if (value.length < 6) {
-                      return "Şifre en az 6 karakter olmalı!";
-                    }
-                    return null;
-                  },
                 ),
+
                 SizedBox(height: 18), // Space between fields and the button
 
                 // Forgot Password Text
@@ -149,30 +185,46 @@ class _LoginState extends State<Login> {
                     height: 18), // Space between forgot password and button
 
                 // Login Button
-                ElevatedButton(
-                  onPressed: () {
-                    // Add your login logic here
-                    // Validate the form fields
-                    if (_formKey.currentState!.validate()) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Giriş başarılı!")),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xff6B548D), // Button color
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(100.0),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        final tc = _tcController.text;
+                        final password = _passwordController.text;
+
+                        // Call the login method from AuthService
+                        final response = await _authService.login(tc, password);
+
+                        if (response['success']) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Giriş başarılı!")),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text("Hata: ${response['message']}")),
+                          );
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xff6B548D), // Button color
+                      fixedSize: Size(double.infinity, 40),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100.0),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 24.0),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 16.0),
-                  ),
-                  child: Text(
-                    "Giriş Yap",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: 'Roboto'),
+                    child: Text(
+                      "Giriş Yap",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: 'Roboto'),
+                    ),
                   ),
                 ),
               ],
