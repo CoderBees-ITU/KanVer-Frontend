@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kanver/src/create-requestV1/createRequestV1.dart';
 import 'package:kanver/src/login/login.dart';
 import 'package:kanver/src/request-details/requestDetails.dart';
 
@@ -27,6 +28,7 @@ void main() {
         '/': (context) => MyApp(),
         '/login': (context) => Login(),
         '/request-details': (context) => RequestDetails(),
+        '/create-requestV1': (context) => CreateRequestV1(),
       },
     ),
   );
@@ -61,6 +63,16 @@ class MyApp extends StatelessWidget {
                 Navigator.pushNamed(context, '/request-details');
               },
               child: Text("Request Details"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/create-requestV1');
+              },
+              child: Text("Create Request V1"),
             ),
           ],
         ),
