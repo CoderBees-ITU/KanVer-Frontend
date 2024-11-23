@@ -227,6 +227,35 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                 ),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Hala hesabınız yok mu? ",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 14,
+                          fontFamily: 'Inter',
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          // Navigate to login page
+                          Navigator.pushNamed(context, '/register');
+                        },
+                        child: Text(
+                          "Kayıt Ol",
+                          style: TextStyle(
+                            color: Color(0xff6B548D),
+                            fontSize: 14,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
