@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class AuthService {
@@ -32,5 +33,38 @@ class AuthService {
       // Handle exceptions (e.g., network errors)
       return {'success': false, 'message': e.toString()};
     }
+  }
+}
+Future<Map<String, dynamic>> validateUserDetails({
+  required String tcNumber,
+  required String name,
+  required String surname,
+  required String birthDay,
+}) async {
+  try {
+    // Make the HTTP POST request
+    final response = await http.post(
+      Uri.parse("https://tc-kimlik.vercel.app/api/dogrula"),
+      headers: {
+        'Content-Type': 'application/json', // Set content type to JSON
+      },
+      body: jsonEncode({
+        "tc": tcNumber,
+        "ad": name,
+        "soyad": surname,
+        "dogumTarihi": birthDay,
+      }),
+    );
+
+    // Decode the response body into a Map and return it
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  } catch (e) {
+    // Log the error and return a failure response
+    print("Error occurred while validating user details: $e");
+    return {
+      "status": "error",
+      "result": false,
+      "message": "Error occurred while validating user details."
+    };
   }
 }
