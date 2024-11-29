@@ -555,16 +555,14 @@ class _RegisterState extends State<Register> {
                                           "-" +
                                           birthday.split("/").first)
                                   .then((value) => {
-                                        if (value['result'] == true)
-                                          {
+
                                             showDialog(
                                                 context: context,
                                                 builder:
                                                     (BuildContext context) {
                                                   return AlertDialog(
                                                     title: Text("Sonuç"),
-                                                    content: Text(
-                                                        "Doğrulama başarılı!"),
+                                                    content: Text((value['result']? "Bilgiler doğrulandı!" : "Bilgiler hatalı!")),
                                                     actions: [
                                                       TextButton(
                                                         onPressed: () {
@@ -576,29 +574,8 @@ class _RegisterState extends State<Register> {
                                                     ],
                                                   );
                                                 })
-                                          }
-                                        else
-                                          {
-                                            showDialog(
-                                                context: context,
-                                                builder:
-                                                    (BuildContext context) {
-                                                  return AlertDialog(
-                                                    title: Text("Sonuç"),
-                                                    content: Text(
-                                                        "Kimlik bilgileriniz doğrulanamadı!"),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          Navigator.pop(
-                                                              context);
-                                                        },
-                                                        child: Text("Kapat"),
-                                                      ),
-                                                    ],
-                                                  );
-                                                })
-                                          }
+                                          
+                                        
                                       });
 
                               // showDialog(
