@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kanver/services/auth_service.dart'; // Import for date formatting
@@ -24,6 +25,9 @@ class _RegisterState extends State<Register> {
       TextEditingController();
 
   String? _selectedBloodType; // Variable to hold selected blood type
+  final Auth _auth = Auth(); // Instance of your Auth class
+
+
 
   // final AuthService _authService =
   //     AuthService(); // Create an instance of AuthService
@@ -61,6 +65,30 @@ class _RegisterState extends State<Register> {
 
   @override
   Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: _auth.authStateChanges, // Listen to auth state changes
+      builder: (context, snapshot) {
+        // Check if the user is authenticated
+        if (snapshot.connectionState == ConnectionState.active) {
+          final user = snapshot.data;
+          if (user != null) {
+            // User is signed in, navigate to home page or desired screen
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.pushNamed(context, '/request-details'); // Adjust route as needed
+            });
+            return Center(child: CircularProgressIndicator());
+          } else {
+            // User is not signed in, show the Register page
+            return _buildRegisterForm(context);
+          }
+        }
+        // Show a loading spinner while waiting for auth state
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+  }
+
+  Widget _buildRegisterForm(BuildContext context) {
     // List of blood types
     final List<String> bloodTypes = [
       'A+',
@@ -555,14 +583,45 @@ class _RegisterState extends State<Register> {
                                           "-" +
                                           birthday.split("/").first)
                                   .then((value) => {
-
+                                        if (value['result'])
+                                          {
+                                            AuthService()
+                                                .register(
+                                                    tc: tc,
+                                                    password: password,
+                                                    name: firstName,
+                                                    surname: lastName,
+                                                    bithDate: birthday
+                                                            .split("/")
+                                                            .last +
+                                                        "-" +
+                                                        birthday.split("/")[1] +
+                                                        "-" +
+                                                        birthday
+                                                            .split("/")
+                                                            .first,
+                                                    blood_type: bloodType!,
+                                                    email: email)
+                                                .then((res) {
+                                              print(res);
+                                              if (res['success']) {
+                                                Navigator.pushNamed(context,
+                                                    '/request-details');
+                                              }
+                                            })
+                                          }
+                                        else
+                                          {
                                             showDialog(
                                                 context: context,
                                                 builder:
                                                     (BuildContext context) {
                                                   return AlertDialog(
                                                     title: Text("Sonuç"),
-                                                    content: Text((value['result']? "Bilgiler doğrulandı!" : "Bilgiler hatalı!")),
+                                                    content: Text((value[
+                                                            'result']
+                                                        ? "Bilgiler doğrulandı!"
+                                                        : "Bilgiler hatalı!")),
                                                     actions: [
                                                       TextButton(
                                                         onPressed: () {
@@ -574,49 +633,8 @@ class _RegisterState extends State<Register> {
                                                     ],
                                                   );
                                                 })
-                                          
-                                        
+                                          }
                                       });
-
-                              // showDialog(
-                              //   context: context,
-                              //   builder: (BuildContext context) {
-                              //     return AlertDialog(
-                              //       title: Text("Sonuç"),
-                              //       content: Text(response.toString()),
-                              //       actions: [
-                              //         TextButton(
-                              //           onPressed: () {
-                              //             Navigator.pop(context);
-                              //           },
-                              //           child: Text("Kapat"),
-                              //         ),
-                              //       ],
-                              //     );
-                              //   },
-                              // );
-
-                              // // Call the register method from AuthService
-                              // final response = await _authService.register(
-                              //   firstName: firstName,
-                              //   lastName: lastName,
-                              //   email: email,
-                              //   birthday: birthday,
-                              //   bloodType: bloodType,
-                              //   tc: tc,
-                              //   password: password,
-                              // );
-
-                              // if (response['success']) {
-                              //   ScaffoldMessenger.of(context).showSnackBar(
-                              //     SnackBar(content: Text("Kayıt başarılı!")),
-                              //   );
-                              //   // Navigate to the next screen if needed
-                              // } else {
-                              //   ScaffoldMessenger.of(context).showSnackBar(
-                              //     SnackBar(content: Text("Hata: ${response['message']}")),
-                              //   );
-                              // }
                             }
                             setState(() {
                               _isLoading = false;

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart'; // Import the service
 
@@ -14,6 +15,7 @@ class _LoginState extends State<Login> {
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService =
       AuthService(); // Create an instance of AuthService
+  final Auth _auth = Auth(); // Instance of your Auth class
 
   @override
   void dispose() {
@@ -24,7 +26,31 @@ class _LoginState extends State<Login> {
   }
 
   @override
-  Widget build(BuildContext context) {
+    Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: _auth.authStateChanges, // Listen to auth state changes
+      builder: (context, snapshot) {
+        // Check if the user is authenticated
+        if (snapshot.connectionState == ConnectionState.active) {
+          final user = snapshot.data;
+          if (user != null) {
+            // User is signed in, navigate to home page or desired screen
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.pushNamed(context, '/request-details'); // Adjust route as needed
+            });
+            return Center(child: CircularProgressIndicator());
+          } else {
+            // User is not signed in, show the Register page
+            return _buildLoginForm(context);
+          }
+        }
+        // Show a loading spinner while waiting for auth state
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+  }
+
+  Widget _buildLoginForm(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white, // Set the background color
       body: Center(
@@ -200,6 +226,7 @@ class _LoginState extends State<Login> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text("Giriş başarılı!")),
                           );
+                          Navigator.pushNamed(context, '/request-details');
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
