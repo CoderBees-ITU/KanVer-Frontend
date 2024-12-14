@@ -86,7 +86,7 @@ class _RegisterState extends State<Register> {
         return Center(child: CircularProgressIndicator());
       },
     );
-  }
+  } 
 
   Widget _buildRegisterForm(BuildContext context) {
     // List of blood types

@@ -18,7 +18,10 @@ class AuthService {
         headers: {'Content-Type': 'application/json'},
       ).then((value) {
         final data = jsonDecode(value.body);
-        Auth().signInWithEmailAndPassword(email: data["Email"], password: password).then((value) {
+        Auth()
+            .signInWithEmailAndPassword(
+                email: data["Email"], password: password)
+            .then((value) {
           print("User signed in: ${data["Name"]}");
         });
       });
@@ -30,24 +33,15 @@ class AuthService {
     }
   }
 
-
   Future<Map<String, dynamic>> register({
-
-  required String tc,
-
-  required String password,
-
-  required String name,
-
-  required String surname,
-
-  required String bithDate,
-
-  required String blood_type,
-
-  required String email,
-
-}) async {
+    required String tc,
+    required String password,
+    required String name,
+    required String surname,
+    required String bithDate,
+    required String blood_type,
+    required String email,
+  }) async {
     final url = Uri.parse("$_baseUrl/create_user");
 
     try {
@@ -55,7 +49,15 @@ class AuthService {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'tc_id': tc, 'password': password, 'name': name, 'surname': surname, 'birth_date': bithDate, 'blood_type': blood_type, 'email': email}),
+        body: jsonEncode({
+          'tc_id': tc,
+          'password': password,
+          'name': name,
+          'surname': surname,
+          'birth_date': bithDate,
+          'blood_type': blood_type,
+          'email': email
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -74,9 +76,48 @@ class AuthService {
       return {'success': false, 'message': e.toString()};
     }
   }
-    
-}
 
+
+  // Check session function
+  Future<Map<String, dynamic>> checkSession(String token) async {
+    final url = Uri.parse("$_baseUrl/check_token");
+
+    try {
+      // Replace this with a valid Firebase App Check token
+      final appCheckToken = await _getAppCheckToken();
+
+      // Send POST request to backend
+      print(token);
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'session_key': token}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'data': data};
+      } else {
+        final error = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': error['message'] ?? "Session validation failed"
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  // Utility to retrieve Firebase App Check token
+  Future<String> _getAppCheckToken() async {
+    // Logic to retrieve Firebase App Check token (e.g., using Firebase App Check SDK)
+    // Replace with your actual implementation
+    return "your-app-check-token"; // Placeholder
+  }
+}
 Future<Map<String, dynamic>> validateUserDetails({
   required String tcNumber,
   required String name,
