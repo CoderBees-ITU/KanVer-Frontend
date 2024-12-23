@@ -36,7 +36,7 @@ class _LoginState extends State<Login> {
           if (user != null) {
             // User is signed in, navigate to home page or desired screen
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.pushNamed(context, '/request-details'); // Adjust route as needed
+              Navigator.pushNamed(context, '/home'); // Adjust route as needed
             });
             return Center(child: CircularProgressIndicator());
           } else {
@@ -226,7 +226,7 @@ class _LoginState extends State<Login> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text("Giriş başarılı!")),
                           );
-                          Navigator.pushNamed(context, '/request-details');
+                          Navigator.pushNamed(context, '/home');
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(

@@ -73,9 +73,9 @@ class _RegisterState extends State<Register> {
           final user = snapshot.data;
           if (user != null) {
             // User is signed in, navigate to home page or desired screen
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.pushNamed(context, '/request-details'); // Adjust route as needed
-            });
+            // WidgetsBinding.instance.addPostFrameCallback((_) {
+            //   Navigator.pushNamed(context, '/home'); // Adjust route as needed
+            // });
             return Center(child: CircularProgressIndicator());
           } else {
             // User is not signed in, show the Register page
@@ -583,6 +583,7 @@ class _RegisterState extends State<Register> {
                                           "-" +
                                           birthday.split("/").first)
                                   .then((value) => {
+                                        print("Response: $value"),
                                         if (value['result'])
                                           {
                                             AuthService()
@@ -606,7 +607,7 @@ class _RegisterState extends State<Register> {
                                               print(res);
                                               if (res['success']) {
                                                 Navigator.pushNamed(context,
-                                                    '/request-details');
+                                                    '/home');
                                               }
                                             })
                                           }

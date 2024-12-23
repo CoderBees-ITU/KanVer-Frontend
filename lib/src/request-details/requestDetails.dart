@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kanver/src/home/home.dart';
 import 'package:kanver/src/widgets/requestDetailCard.dart';
 
 class RequestDetails extends StatelessWidget {
@@ -10,7 +11,7 @@ class RequestDetails extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
           },
         ),
       ),

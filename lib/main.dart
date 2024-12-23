@@ -61,7 +61,7 @@ class MyApp extends StatelessWidget {
           AuthService().checkSession(value).then((value) {
             print(value);
             if (value["success"]) {
-              Navigator.pushNamed(context, '/home');
+              // Navigator.pushNamed(context, '/home');
             } else {
               Navigator.pushNamed(context, '/login');
             }
