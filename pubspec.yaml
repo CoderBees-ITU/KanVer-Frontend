@@ -32,6 +32,8 @@ dependencies:
     sdk: flutter
   http: ^1.2.2
   intl: ^0.20.0
+  location: ^5.0.0
+
 
 
 
@@ -41,6 +43,7 @@ dependencies:
   inspector: ^2.1.0
   firebase_auth: ^5.3.4
   firebase_core: ^3.8.1
+  geocoding: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -58,6 +61,9 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  assets:
+    - assets/il-ilce.json
+
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
@@ -110,7 +116,6 @@ flutter:
           weight: 700
         - asset: assets/fonts/Roboto/Roboto-Medium.ttf
           weight: 400
-        
 
   
 
