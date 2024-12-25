@@ -26,7 +26,7 @@ class _LoginState extends State<Login> {
   }
 
   @override
-    Widget build(BuildContext context) {
+  Widget build(BuildContext context) {
     return StreamBuilder<User?>(
       stream: _auth.authStateChanges, // Listen to auth state changes
       builder: (context, snapshot) {
@@ -36,7 +36,8 @@ class _LoginState extends State<Login> {
           if (user != null) {
             // User is signed in, navigate to home page or desired screen
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.pushNamed(context, '/request-details'); // Adjust route as needed
+              Navigator.pushNamed(
+                  context, '/request-details'); // Adjust route as needed
             });
             return Center(child: CircularProgressIndicator());
           } else {
@@ -255,34 +256,34 @@ class _LoginState extends State<Login> {
                   ),
                 ),
                 Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Hala hesabınız yok mu? ",
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Hala hesabınız yok mu? ",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 14,
+                        fontFamily: 'Inter',
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () {
+                        // Navigate to login page
+                        Navigator.pushNamed(context, '/register');
+                      },
+                      child: Text(
+                        "Kayıt Ol",
                         style: TextStyle(
-                          color: Colors.black,
+                          color: Color(0xff6B548D),
                           fontSize: 14,
                           fontFamily: 'Inter',
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () {
-                          // Navigate to login page
-                          Navigator.pushNamed(context, '/register');
-                        },
-                        child: Text(
-                          "Kayıt Ol",
-                          style: TextStyle(
-                            color: Color(0xff6B548D),
-                            fontSize: 14,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
