@@ -10,6 +10,22 @@ class Register extends StatefulWidget {
   _RegisterState createState() => _RegisterState();
 }
 
+void _showErrorDialog(BuildContext context, String message) {
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text("Sonuç"),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: const Text("Kapat"),
+        ),
+      ],
+    ),
+  );
+}
+
 class _RegisterState extends State<Register> {
   // Declare the form key inside the State class
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -26,8 +42,6 @@ class _RegisterState extends State<Register> {
 
   String? _selectedBloodType; // Variable to hold selected blood type
   final Auth _auth = Auth(); // Instance of your Auth class
-
-
 
   // final AuthService _authService =
   //     AuthService(); // Create an instance of AuthService
@@ -72,21 +86,24 @@ class _RegisterState extends State<Register> {
         if (snapshot.connectionState == ConnectionState.active) {
           final user = snapshot.data;
           if (user != null) {
-            // User is signed in, navigate to home page or desired screen
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.pushNamed(context, '/request-details'); // Adjust route as needed
-            });
-            return Center(child: CircularProgressIndicator());
+            // Only navigate if the current route/page is "/"
+            if (ModalRoute.of(context)?.settings.name == '/') {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.pushNamed(context, '/home');
+              });
+            }
+            // Return something while the navigation is happening
+            return const Center(child: CircularProgressIndicator());
           } else {
             // User is not signed in, show the Register page
             return _buildRegisterForm(context);
           }
         }
         // Show a loading spinner while waiting for auth state
-        return Center(child: CircularProgressIndicator());
+        return const Center(child: CircularProgressIndicator());
       },
     );
-  } 
+  }
 
   Widget _buildRegisterForm(BuildContext context) {
     // List of blood types
@@ -558,107 +575,100 @@ class _RegisterState extends State<Register> {
 
                       // Register Button
                       Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            setState(() {
-                              _isLoading = true;
-                            });
-                            if (_formKey.currentState!.validate()) {
-                              final firstName = _firstNameController.text;
-                              final lastName = _lastNameController.text;
-                              final email = _emailController.text;
-                              final birthday = _birthdayController.text;
-                              final bloodType = _selectedBloodType;
-                              final tc = _tcController.text;
-                              final password = _passwordController.text;
+                          padding: EdgeInsets.all(8.0),
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              // Start loading
+                              setState(() => _isLoading = true);
 
-                              final response = await validateUserDetails(
-                                      tcNumber: tc,
+                              // Validate the form first
+                              if (_formKey.currentState!.validate()) {
+                                // Gather all the inputs
+                                final firstName =
+                                    _firstNameController.text.trim();
+                                final lastName =
+                                    _lastNameController.text.trim();
+                                final email = _emailController.text.trim();
+                                final birthday = _birthdayController.text
+                                    .trim(); // e.g. "01/05/1990"
+                                final bloodType = _selectedBloodType ?? '';
+                                final tc = _tcController.text.trim();
+                                final password = _passwordController.text;
+
+                                // Convert dd/MM/yyyy => yyyy-MM-dd (assuming that is your desired format)
+                                final birthdayParts = birthday.split('/');
+                                // Make sure the user typed in a valid format "DD/MM/YYYY"
+                                // You could add extra validation if needed.
+                                final convertedBirthday =
+                                    '${birthdayParts[2]}-${birthdayParts[1]}-${birthdayParts[0]}';
+
+                                try {
+                                  // 1. Validate user details
+                                  final userValidation =
+                                      await validateUserDetails(
+                                    tcNumber: tc,
+                                    name: firstName,
+                                    surname: lastName,
+                                    birthDay: convertedBirthday,
+                                  );
+
+                                  if (userValidation['result']) {
+                                    // 2. If validation passes, register the user
+                                    final registerRes =
+                                        await AuthService().register(
+                                      tc: tc,
+                                      password: password,
                                       name: firstName,
                                       surname: lastName,
-                                      birthDay: birthday.split("/").last +
-                                          "-" +
-                                          birthday.split("/")[1] +
-                                          "-" +
-                                          birthday.split("/").first)
-                                  .then((value) => {
-                                        if (value['result'])
-                                          {
-                                            AuthService()
-                                                .register(
-                                                    tc: tc,
-                                                    password: password,
-                                                    name: firstName,
-                                                    surname: lastName,
-                                                    bithDate: birthday
-                                                            .split("/")
-                                                            .last +
-                                                        "-" +
-                                                        birthday.split("/")[1] +
-                                                        "-" +
-                                                        birthday
-                                                            .split("/")
-                                                            .first,
-                                                    blood_type: bloodType!,
-                                                    email: email)
-                                                .then((res) {
-                                              print(res);
-                                              if (res['success']) {
-                                                Navigator.pushNamed(context,
-                                                    '/request-details');
-                                              }
-                                            })
-                                          }
-                                        else
-                                          {
-                                            showDialog(
-                                                context: context,
-                                                builder:
-                                                    (BuildContext context) {
-                                                  return AlertDialog(
-                                                    title: Text("Sonuç"),
-                                                    content: Text((value[
-                                                            'result']
-                                                        ? "Bilgiler doğrulandı!"
-                                                        : "Bilgiler hatalı!")),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          Navigator.pop(
-                                                              context);
-                                                        },
-                                                        child: Text("Kapat"),
-                                                      ),
-                                                    ],
-                                                  );
-                                                })
-                                          }
-                                      });
-                            }
-                            setState(() {
-                              _isLoading = false;
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xff6B548D), // Button color
-                            fixedSize: Size(double.infinity, 40),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(100.0),
+                                      birthDate: convertedBirthday,
+                                      blood_type: bloodType,
+                                      email: email,
+                                    );
+
+                                    if (registerRes['success']) {                                    
+                                    } else {
+                                      // 4. Registration error
+                                      _showErrorDialog(
+                                          context, "Bir hata oluştu!");
+                                    }
+                                  } else {
+                                    // 5. Validation failed
+                                    _showErrorDialog(
+                                        context, "Bilgiler hatalı!");
+                                  }
+                                } catch (e) {
+                                  // 6. Handle any exception (network, etc.)
+                                  _showErrorDialog(
+                                      context, "Bir hata oluştu: $e");
+                                } finally {
+                                  // Stop loading, regardless of success or failure
+                                  setState(() => _isLoading = false);
+                                }
+                              } else {
+                                // If the form wasn’t valid, just stop loading
+                                setState(() => _isLoading = false);
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color(0xff6B548D), // Button color
+                              fixedSize: const Size(double.infinity, 40),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(100.0),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 24.0),
                             ),
-                            padding: EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 24.0),
-                          ),
-                          child: Text(
-                            "Kayıt Ol",
-                            style: TextStyle(
+                            child: const Text(
+                              "Kayıt Ol",
+                              style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
-                                fontFamily: 'Roboto'),
-                          ),
-                        ),
-                      ),
+                                fontFamily: 'Roboto',
+                              ),
+                            ),
+                          )),
                       SizedBox(height: 10),
 
                       // Already have an account? Login

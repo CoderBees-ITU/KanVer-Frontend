@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 
 class AuthService {
   // Base URL for the backend
-  final String _baseUrl = "http://13.60.166.45:8080";
+  final String _baseUrl = "http://161.9.76.106:8080";
 
   // Login function
   Future<Map<String, dynamic>> login(String tc, String password) async {
@@ -38,45 +38,49 @@ class AuthService {
     required String password,
     required String name,
     required String surname,
-    required String bithDate,
+    required String birthDate,
     required String blood_type,
     required String email,
   }) async {
-    final url = Uri.parse("$_baseUrl/create_user");
+    final url = Uri.parse("$_baseUrl/register");
 
     try {
-      // Send POST request
+      // Make the POST request
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'tc_id': tc,
+          'tc': tc,
           'password': password,
           'name': name,
           'surname': surname,
-          'birth_date': bithDate,
+          'birth_date': birthDate,
           'blood_type': blood_type,
-          'email': email
+          'email': email,
         }),
       );
 
+      // Check the status code
       if (response.statusCode == 200) {
-        Auth().createUserWithEmailAndPassword(email: email, password: password);
+        // Parse JSON response
         final data = jsonDecode(response.body);
-        return {'success': true, 'data': data};
+
+        // Sign in with the custom token from Firebase
+        await FirebaseAuth.instance.signInWithCustomToken(data["session_key"]);
+
+        print("User created: $name");
+        return {'success': true, 'message': 'User created successfully'};
       } else {
-        final error = jsonDecode(response.body);
-        return {
-          'success': false,
-          'message': error['message'] ?? "An error occurred"
-        };
+        // If server returned an error, throw an Exception
+        throw Exception(
+          "User could not be created: ${response.statusCode} - ${response.body}",
+        );
       }
     } catch (e) {
-      // Handle exceptions (e.g., network errors)
+      // Handle any exceptions (e.g., network issues, JSON parse errors)
       return {'success': false, 'message': e.toString()};
     }
   }
-
 
   // Check session function
   Future<Map<String, dynamic>> checkSession(String token) async {
@@ -118,6 +122,7 @@ class AuthService {
     return "your-app-check-token"; // Placeholder
   }
 }
+
 Future<Map<String, dynamic>> validateUserDetails({
   required String tcNumber,
   required String name,
@@ -165,8 +170,13 @@ class Auth {
 
   Future<void> signInWithEmailAndPassword(
       {required String email, required String password}) async {
+    try{
     await _firebaseAuth.signInWithEmailAndPassword(
         email: email, password: password);
+    } catch(e){
+      throw e;
+    }
+        
   }
 
   Future<void> createUserWithEmailAndPassword(

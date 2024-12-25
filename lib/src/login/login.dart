@@ -6,12 +6,27 @@ class Login extends StatefulWidget {
   _LoginState createState() => _LoginState();
 }
 
+void _showErrorDialog(BuildContext context, String message) {
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text("Sonuç"),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: const Text("Kapat"),
+        ),
+      ],
+    ),
+  );
+}
+
 class _LoginState extends State<Login> {
-  // Declare the form key inside the State class
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   // Declare TextEditingControllers for inputs
-  final TextEditingController _tcController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService =
       AuthService(); // Create an instance of AuthService
@@ -19,8 +34,7 @@ class _LoginState extends State<Login> {
 
   @override
   void dispose() {
-    // Dispose controllers to free up resources
-    _tcController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -30,22 +44,17 @@ class _LoginState extends State<Login> {
     return StreamBuilder<User?>(
       stream: _auth.authStateChanges, // Listen to auth state changes
       builder: (context, snapshot) {
-        // Check if the user is authenticated
         if (snapshot.connectionState == ConnectionState.active) {
           final user = snapshot.data;
           if (user != null) {
-            // User is signed in, navigate to home page or desired screen
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.pushNamed(
-                  context, '/request-details'); // Adjust route as needed
+              Navigator.pushNamed(context, '/home');
             });
             return Center(child: CircularProgressIndicator());
           } else {
-            // User is not signed in, show the Register page
             return _buildLoginForm(context);
           }
         }
-        // Show a loading spinner while waiting for auth state
         return Center(child: CircularProgressIndicator());
       },
     );
@@ -53,17 +62,16 @@ class _LoginState extends State<Login> {
 
   Widget _buildLoginForm(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Set the background color
+      backgroundColor: Colors.white,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 40.0),
           child: Form(
-            key: _formKey, // Attach the form key for validation
+            key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Title
                 Text(
                   "Giriş Yap",
                   style: TextStyle(
@@ -74,14 +82,11 @@ class _LoginState extends State<Login> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(
-                    height: 18), // Space between the title and input fields
-
-                // TC Label
+                SizedBox(height: 18),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    "Kimlik Numaranız:",
+                    "E-posta Adresiniz:",
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 14,
@@ -90,21 +95,17 @@ class _LoginState extends State<Login> {
                   ),
                 ),
                 SizedBox(height: 2),
-
-                // TC input field
-
                 Container(
                   height: 46,
                   child: TextFormField(
-                    controller: _tcController, // Attach the controller
+                    controller: _emailController,
                     decoration: InputDecoration(
-                      hintText: "T.C. kimlik numaranız...",
+                      hintText: "E-posta adresinizi girin...",
                       hintStyle: TextStyle(
                         color: Color(0xFF544C4C),
                         fontFamily: 'Inter',
                         fontSize: 14,
-                        fontWeight:
-                            FontWeight.w500, // Customize the hint text style
+                        fontWeight: FontWeight.w500,
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6.0),
@@ -118,24 +119,21 @@ class _LoginState extends State<Login> {
                         height: 0.3,
                       ),
                     ),
-                    keyboardType: TextInputType.number,
+                    keyboardType: TextInputType.emailAddress,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return "Kimlik numarası gerekli!";
+                        return "E-posta adresi gerekli!";
                       }
-                      if (value.length != 11) {
-                        return "Kimlik numarası 11 haneli olmalı!";
+                      final emailRegex = RegExp(
+                          r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+                      if (!emailRegex.hasMatch(value)) {
+                        return "Geçerli bir e-posta adresi girin!";
                       }
                       return null;
                     },
                   ),
                 ),
-
-                // T.C. Input Field
-
-                SizedBox(height: 18), // Space between fields
-
-                // password label
+                SizedBox(height: 18),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -148,12 +146,10 @@ class _LoginState extends State<Login> {
                   ),
                 ),
                 SizedBox(height: 2),
-
-                // Password Input Field (Şifre)
                 Container(
                   height: 46.0,
                   child: TextFormField(
-                    controller: _passwordController, // Attach the controller
+                    controller: _passwordController,
                     decoration: InputDecoration(
                       hintText: "Şifreniz...",
                       hintStyle: TextStyle(
@@ -161,7 +157,6 @@ class _LoginState extends State<Login> {
                         fontFamily: 'Inter',
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        // Customize the hint text style
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6.0),
@@ -175,7 +170,7 @@ class _LoginState extends State<Login> {
                         height: 0.3,
                       ),
                     ),
-                    obscureText: true, // To hide password input
+                    obscureText: true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Şifre gerekli!";
@@ -187,10 +182,7 @@ class _LoginState extends State<Login> {
                     },
                   ),
                 ),
-
-                SizedBox(height: 18), // Space between fields and the button
-
-                // Forgot Password Text
+                SizedBox(height: 18),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: GestureDetector(
@@ -208,36 +200,36 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                 ),
-                SizedBox(
-                    height: 18), // Space between forgot password and button
-
-                // Login Button
+                SizedBox(height: 18),
                 Padding(
                   padding: EdgeInsets.all(8.0),
                   child: ElevatedButton(
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        final tc = _tcController.text;
+                        final email = _emailController.text;
                         final password = _passwordController.text;
 
-                        // Call the login method from AuthService
-                        final response = await _authService.login(tc, password);
+                        try {
+                          // Sign in the user
+                          final user = await Auth().signInWithEmailAndPassword(
+                            email: email,
+                            password: password,
+                          );
 
-                        if (response['success']) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Giriş başarılı!")),
-                          );
-                          Navigator.pushNamed(context, '/request-details');
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text("Hata: ${response['message']}")),
-                          );
+                          // Handle success
+                          print("User signed in: $email");
+
+                          // Navigate to the next screen
+                          Navigator.pushNamed(context,
+                              '/home'); // Replace with your desired route
+                        } catch (e) {
+                          // Handle errors 
+                          _showErrorDialog(context, e.toString());
                         }
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xff6B548D), // Button color
+                      backgroundColor: Color(0xff6B548D),
                       fixedSize: Size(double.infinity, 40),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(100.0),
@@ -269,7 +261,6 @@ class _LoginState extends State<Login> {
                     SizedBox(width: 8),
                     GestureDetector(
                       onTap: () {
-                        // Navigate to login page
                         Navigator.pushNamed(context, '/register');
                       },
                       child: Text(
