@@ -3,6 +3,12 @@
         android:label="kanver"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+         <!-- TODO: Add your Google Maps API key here -->
+        <meta-data android:name="com.google.android.geo.API_KEY"
+               android:value="AIzaSyCd0gng2M6iGEyod8rLJZJKFO_BgLcoy6k"/>
+
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
