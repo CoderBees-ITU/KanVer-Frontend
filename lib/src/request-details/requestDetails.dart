@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kanver/src/widgets/requestDetailCard.dart';
 
 class RequestDetails extends StatelessWidget {
+  GoogleMapController? mapController;
+
+  final LatLng _center = const LatLng(41.097952, 28.990461);
+
+  void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,24 +53,26 @@ class RequestDetails extends StatelessWidget {
                         desc: "İstinye Sarıyer Devlet Hastanesi",
                         icon: Icon(Icons.local_hospital)),
                     const SizedBox(height: 16),
-                    RichText(
-                      text: const TextSpan(
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
+                    SizedBox(
+                      height: 250, // Set a fixed height for the map
+                      child: GoogleMap(
+                        onMapCreated: _onMapCreated,
+                        initialCameraPosition: CameraPosition(
+                          target: _center,
+                          zoom: 11.0,
                         ),
-                        children: [
-                          TextSpan(
-                            text: 'Ek Bilgiler: ',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                        markers: {
+                          Marker(
+                            markerId: const MarkerId('center_marker'),
+                            position: _center,
+                            infoWindow: const InfoWindow(
+                              title: 'İstinye Sarıyer Devlet Hastanesi',
+                              snippet: 'Hastane Lokasyonu',
+                            ),
                           ),
-                          TextSpan(
-                            text:
-                                'Hasta çok ağır bir trafik kazası geçirdi ve bugün akşam 8’de ameliyata girecek.',
-                          ),
-                        ],
+                        },
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -70,10 +81,9 @@ class RequestDetails extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xff65558F),
+                  backgroundColor: const Color(0xff65558F),
                   foregroundColor: Colors.white,
                 ),
-                
                 onPressed: () {
                   showDialog(
                     context: context,
