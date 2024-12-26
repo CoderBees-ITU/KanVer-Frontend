@@ -188,3 +188,8 @@ class Auth {
     });
   }
 }
+
+
+class APIKey {
+  final MapsApiKey = "AIzaSyCd0gng2M6iGEyod8rLJZJKFO_BgLcoy6k";
+}

@@ -124,7 +124,7 @@ Future<void> _initializeLocation() async {
     setState(() {
       _selectedIndex = index;
       if (index == 0) {
-        Navigator.pushNamed(context, '/home');
+        Navigator.pushNamed(context, '/create-requestV1');
       } else if (index == 1) {
         Navigator.pushNamed(context, '/request-details');
       } else if (index == 2) {
