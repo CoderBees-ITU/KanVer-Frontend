@@ -53,6 +53,27 @@ class RequestDetails extends StatelessWidget {
                         desc: "İstinye Sarıyer Devlet Hastanesi",
                         icon: Icon(Icons.local_hospital)),
                     const SizedBox(height: 16),
+                     Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: RichText(
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'Ek Bilgiler: ',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            TextSpan(
+                              text:
+                                  'Hasta çok ağır bir trafik kazası geçirdi ve bugün akşam 8’de ameliyata girecek.',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                     SizedBox(
                       height: 250, // Set a fixed height for the map
                       child: GoogleMap(
