@@ -1,10 +1,14 @@
 // ignore_for_file: prefer_const_constructors
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kanver/services/auth_service.dart';
 import 'package:kanver/src/create-requestV1/createRequestV1.dart';
 import 'package:kanver/src/request-details/requestDetails.dart';
 import 'package:kanver/src/widgets/CitySelectModal.dart';
+import 'package:kanver/src/widgets/filterModal.dart';
 import 'package:location/location.dart' as loc;
 import 'package:geocoding/geocoding.dart';
 import 'package:location/location.dart';
@@ -20,19 +24,11 @@ class _HomeState extends State<Home> {
   String _selectedBloodType = 'Tümü';
   String _selectedAgeGroup = 'Tümü';
   String _selectedCity = 'Tümü';
-  String _selectedDistrict = 'Tümü';
-  List<String> _cities = [
-    'Tümü',
-    'İstanbul',
-    'Ankara',
-    'İzmir'
-  ]; // Mock city list
-  Map<String, List<String>> _districts = {
-    'Tümü': ['Tümü'],
-    'İstanbul': ['Tümü', 'Kadıköy', 'Beşiktaş', 'Üsküdar'],
-    'Ankara': ['Tümü', 'Çankaya', 'Keçiören'],
-    'İzmir': ['Tümü', 'Bornova', 'Konak'],
-  };
+  String _selectedDistrict = "Tümü";
+  List<dynamic> _cities = ["Tümü"];
+  List<dynamic> _districts = [
+    {"ilce_adi": "Tümü"}
+  ];
 
   // Location instance
   final loc.Location _location = loc.Location();
@@ -180,186 +176,36 @@ class _HomeState extends State<Home> {
               onPressed: () {
                 showModalBottomSheet(
                   context: context,
+                  isScrollControlled: true,
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
                   builder: (BuildContext context) {
-                    return Padding(
-                      padding: EdgeInsets.fromLTRB(16, 24, 16, 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: DropdownButtonFormField<String>(
-                                  decoration: InputDecoration(
-                                    contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 12.0, vertical: 4.0),
-                                    labelText:
-                                        'Kan grubu', // Label above the dropdown
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                  ),
-                                  value: _selectedBloodType,
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      _selectedBloodType = newValue!;
-                                    });
-                                  },
-                                  items: <String>[
-                                    'Tümü',
-                                    'A+',
-                                    'A-',
-                                    'B+',
-                                    'B-',
-                                    'AB+',
-                                    'AB-',
-                                    'O+',
-                                    'O-'
-                                  ].map<DropdownMenuItem<String>>(
-                                      (String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              SizedBox(width: 8),
-                              Expanded(
-                                child: DropdownButtonFormField<String>(
-                                  decoration: InputDecoration(
-                                    contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 12.0, vertical: 4.0),
-                                    labelText:
-                                        'Yaş', // Label above the dropdown
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                  ),
-                                  value: _selectedAgeGroup,
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      _selectedAgeGroup = newValue!;
-                                    });
-                                  },
-                                  items: <String>[
-                                    'Tümü',
-                                    '18-25',
-                                    '26-35',
-                                    '36-45',
-                                    '46-60',
-                                    '60+'
-                                  ].map<DropdownMenuItem<String>>(
-                                      (String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: DropdownButtonFormField<String>(
-                                  decoration: InputDecoration(
-                                    contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 12.0, vertical: 4.0),
-                                    labelText: 'İl', // Label above the dropdown
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                  ),
-                                  value: _selectedCity,
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      _selectedCity = newValue!;
-                                      _selectedDistrict =
-                                          'Tümü'; // Reset district
-                                      print('Selected City: $_selectedCity');
-                                    });
-                                  },
-                                  items: _cities.map<DropdownMenuItem<String>>(
-                                      (String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Expanded(
-                                child: DropdownButtonFormField<String>(
-                                  decoration: InputDecoration(
-                                    contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 12.0, vertical: 4.0),
-                                    labelText:
-                                        'İlçe', // Label above the dropdown
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                  ),
-                                  value: _selectedDistrict,
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      _selectedDistrict = newValue!;
-                                      print(
-                                          'Selected District: $_selectedDistrict');
-                                    });
-                                  },
-                                  items: _districts[_selectedCity]!
-                                      .map<DropdownMenuItem<String>>(
-                                          (String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              ElevatedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _selectedBloodType = 'Tümü';
-                                    _selectedAgeGroup = 'Tümü';
-                                    _selectedCity = 'Tümü';
-                                    _selectedDistrict = 'Tümü';
-                                  });
-                                },
-                                child: Text(
-                                  'Filtreleri temizle',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                      WidgetStatePropertyAll(Color(0xff625B71)),
-                                ),
-                              ),
-                              /* ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: Text('Filtreleri Uygula'),
-                              ), */
-                            ],
-                          ),
-                        ],
-                      ),
+                    return FilterModal(
+                      onBloodTypeSelected: (String? bloodType) {
+                        setState(() {
+                          _selectedBloodType = bloodType ?? 'Tümü';
+                        });
+                      },
+                      onCitySelected: (String? city) {
+                        setState(() {
+                          _selectedCity = city ?? 'Tümü';
+                        });
+                      },
+                      onDistrictSelected: (String? district) {
+                        setState(() {
+                          _selectedDistrict = district ?? 'Tümü';
+                        });
+                      },
                     );
                   },
-                );
+                ).then((result) {
+                  if (result != null) {
+                    print(
+                        "Selected City: ${result['city']}, District: ${result['district']}");
+                  }
+                });
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
