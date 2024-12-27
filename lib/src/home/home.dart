@@ -12,7 +12,7 @@ import 'package:kanver/src/widgets/filterModal.dart';
 import 'package:location/location.dart' as loc;
 import 'package:geocoding/geocoding.dart';
 import 'package:location/location.dart';
-import 'package:kanver/src/isteklerim/isteklerim.dart';
+import 'package:kanver/src/myRequests/myRequests.dart';
 
 class Home extends StatefulWidget {
   @override

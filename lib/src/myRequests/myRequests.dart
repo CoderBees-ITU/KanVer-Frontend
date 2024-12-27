@@ -9,12 +9,12 @@ import 'package:location/location.dart' as loc;
 import 'package:geocoding/geocoding.dart';
 import 'package:location/location.dart';
 
-class Isteklerim extends StatefulWidget {
+class MyRequests extends StatefulWidget {
   @override
   _IsteklerimState createState() => _IsteklerimState();
 }
 
-class _IsteklerimState extends State<Isteklerim> {
+class _IsteklerimState extends State<MyRequests> {
   int _selectedIndex = 0;
 
   String _userBloodType = 'B+';
