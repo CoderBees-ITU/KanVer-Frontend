@@ -29,6 +29,7 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
   String? selectedDistrict;
   String? selectedHospital;
   String? unitCount;
+  String? additionalInfo;
 
   // Dropdown options
   final List<String> formTypeOptions = ['Kendim için', 'Yakınım için'];
@@ -202,6 +203,7 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
         'district': selectedDistrict,
         'hospitalAddress': selectedHospital,
         'unitCount': unitCount,
+        'additionalInfo': additionalInfo,
       };
 
       // Mock saving to a database
@@ -677,7 +679,16 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     value: selectedHospital,
-                    hint: const Text('Hastane adresi...'),
+                    hint: const Text(
+                      'Hastane adresi...',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Inter',
+                        color: Color.fromRGBO(84, 76, 76, 1),
+                      ),
+                    ),
+
                     items: _buildHospitalItems(),
                     // We only need selectedItemBuilder if you want truncated text
                     selectedItemBuilder: _buildHospitalSelectedItems,
@@ -741,6 +752,52 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
                     menuMaxHeight: 300.0,
                     icon: const Icon(Icons.arrow_drop_down),
                     style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'Inter',
+                      color: Color.fromRGBO(84, 76, 76, 1),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Ek Bilgiler:",
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 0, 0, 0),
+                        fontSize: 14,
+                        fontFamily: 'Roboto',
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Ek bilgiler (isteğe bağlı)...',
+                      floatingLabelBehavior: FloatingLabelBehavior.never,
+                      labelStyle: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Inter',
+                        color: Color.fromRGBO(84, 76, 76, 1),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 10.0,
+                        horizontal: 15.0,
+                      ),
+                    ),
+                    maxLines: 3, // Allows multiline input
+                    maxLength: 240, // Restricts input to 200 characters
+                    keyboardType:
+                        TextInputType.multiline, // Multiline input type
+                    onSaved: (value) =>
+                        additionalInfo = value, // Save input to variable
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       fontFamily: 'Inter',

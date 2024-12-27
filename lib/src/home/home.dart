@@ -17,8 +17,22 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   int _selectedIndex = 0;
 
-  String _selectedBloodType = 'All';
-  String _selectedAgeGroup = 'All';
+  String _selectedBloodType = 'Tümü';
+  String _selectedAgeGroup = 'Tümü';
+  String _selectedCity = 'Tümü';
+  String _selectedDistrict = 'Tümü';
+  List<String> _cities = [
+    'Tümü',
+    'İstanbul',
+    'Ankara',
+    'İzmir'
+  ]; // Mock city list
+  Map<String, List<String>> _districts = {
+    'Tümü': ['Tümü'],
+    'İstanbul': ['Tümü', 'Kadıköy', 'Beşiktaş', 'Üsküdar'],
+    'Ankara': ['Tümü', 'Çankaya', 'Keçiören'],
+    'İzmir': ['Tümü', 'Bornova', 'Konak'],
+  };
 
   // Location instance
   final loc.Location _location = loc.Location();
@@ -152,22 +166,203 @@ class _HomeState extends State<Home> {
           Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 16.0), // Outer padding
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              width: double.infinity,
-              height: 40.0,
-              decoration: BoxDecoration(
-                color:
+
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
                     Color(0xff625B71), // Adjust the color to match the design
-                borderRadius: BorderRadius.circular(16.0),
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                fixedSize: Size(double.infinity, 40.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0),
+                ),
               ),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return Padding(
+                      padding: EdgeInsets.fromLTRB(16, 24, 16, 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: DropdownButtonFormField<String>(
+                                  decoration: InputDecoration(
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 12.0, vertical: 4.0),
+                                    labelText:
+                                        'Kan grubu', // Label above the dropdown
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                  value: _selectedBloodType,
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      _selectedBloodType = newValue!;
+                                    });
+                                  },
+                                  items: <String>[
+                                    'Tümü',
+                                    'A+',
+                                    'A-',
+                                    'B+',
+                                    'B-',
+                                    'AB+',
+                                    'AB-',
+                                    'O+',
+                                    'O-'
+                                  ].map<DropdownMenuItem<String>>(
+                                      (String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: DropdownButtonFormField<String>(
+                                  decoration: InputDecoration(
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 12.0, vertical: 4.0),
+                                    labelText:
+                                        'Yaş', // Label above the dropdown
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                  value: _selectedAgeGroup,
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      _selectedAgeGroup = newValue!;
+                                    });
+                                  },
+                                  items: <String>[
+                                    'Tümü',
+                                    '18-25',
+                                    '26-35',
+                                    '36-45',
+                                    '46-60',
+                                    '60+'
+                                  ].map<DropdownMenuItem<String>>(
+                                      (String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: DropdownButtonFormField<String>(
+                                  decoration: InputDecoration(
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 12.0, vertical: 4.0),
+                                    labelText: 'İl', // Label above the dropdown
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                  value: _selectedCity,
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      _selectedCity = newValue!;
+                                      _selectedDistrict =
+                                          'Tümü'; // Reset district
+                                      print('Selected City: $_selectedCity');
+                                    });
+                                  },
+                                  items: _cities.map<DropdownMenuItem<String>>(
+                                      (String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: DropdownButtonFormField<String>(
+                                  decoration: InputDecoration(
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 12.0, vertical: 4.0),
+                                    labelText:
+                                        'İlçe', // Label above the dropdown
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                  value: _selectedDistrict,
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      _selectedDistrict = newValue!;
+                                      print(
+                                          'Selected District: $_selectedDistrict');
+                                    });
+                                  },
+                                  items: _districts[_selectedCity]!
+                                      .map<DropdownMenuItem<String>>(
+                                          (String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _selectedBloodType = 'Tümü';
+                                    _selectedAgeGroup = 'Tümü';
+                                    _selectedCity = 'Tümü';
+                                    _selectedDistrict = 'Tümü';
+                                  });
+                                },
+                                child: Text(
+                                  'Filtreleri temizle',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      WidgetStatePropertyAll(Color(0xff625B71)),
+                                ),
+                              ),
+                              /* ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: Text('Filtreleri Uygula'),
+                              ), */
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
               child: Row(
-                mainAxisSize: MainAxisSize
-                    .min, // Keeps the Row compact around its children
-                mainAxisAlignment: MainAxisAlignment
-                    .spaceBetween, // Aligns content across the bar
-                crossAxisAlignment:
-                    CrossAxisAlignment.center, // Align vertically
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     "Filtrele",
@@ -189,123 +384,13 @@ class _HomeState extends State<Home> {
                           ),
                           onPressed: () {}),
                       IconButton(
-                        padding: EdgeInsets.zero,
-                        icon: Icon(
-                          Icons.filter_alt_outlined,
-                          color: Colors.white,
-                          size: 24.0,
-                        ),
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Container(
-                                            padding: EdgeInsets.symmetric(
-                                                horizontal: 12.0,
-                                                vertical: 4.0),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0),
-                                              border: Border.all(
-                                                  color: Colors.grey),
-                                            ),
-                                            child: DropdownButtonHideUnderline(
-                                              child: DropdownButton<String>(
-                                                value: _selectedBloodType,
-                                                onChanged: (String? newValue) {
-                                                  setState(() {
-                                                    _selectedBloodType =
-                                                        newValue!;
-                                                  });
-                                                },
-                                                items: <String>[
-                                                  'All',
-                                                  'A+',
-                                                  'A-',
-                                                  'B+',
-                                                  'B-',
-                                                  'AB+',
-                                                  'AB-',
-                                                  'O+',
-                                                  'O-'
-                                                ].map<DropdownMenuItem<String>>(
-                                                    (String value) {
-                                                  return DropdownMenuItem<
-                                                      String>(
-                                                    value: value,
-                                                    child: Text(value),
-                                                  );
-                                                }).toList(),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(width: 8),
-                                        Expanded(
-                                          child: Container(
-                                            padding: EdgeInsets.symmetric(
-                                                horizontal: 12.0,
-                                                vertical: 4.0),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0),
-                                              border: Border.all(
-                                                  color: Colors.grey),
-                                            ),
-                                            child: DropdownButtonHideUnderline(
-                                              child: DropdownButton<String>(
-                                                value: _selectedAgeGroup,
-                                                onChanged: (String? newValue) {
-                                                  setState(() {
-                                                    _selectedAgeGroup =
-                                                        newValue!;
-                                                  });
-                                                },
-                                                items: <String>[
-                                                  'All',
-                                                  '18-25',
-                                                  '26-35',
-                                                  '36-45',
-                                                  '46-60',
-                                                  '60+'
-                                                ].map<DropdownMenuItem<String>>(
-                                                    (String value) {
-                                                  return DropdownMenuItem<
-                                                      String>(
-                                                    value: value,
-                                                    child: Text(value),
-                                                  );
-                                                }).toList(),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: Text('Apply Filters'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
+                          padding: EdgeInsets.zero,
+                          icon: Icon(
+                            Icons.filter_alt_outlined,
+                            color: Colors.white,
+                            size: 24.0,
+                          ),
+                          onPressed: () {}),
                     ],
                   ),
                 ],
@@ -314,7 +399,7 @@ class _HomeState extends State<Home> {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+              padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 0.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -330,16 +415,15 @@ class _HomeState extends State<Home> {
                               child: Text('Error: ${snapshot.error}'));
                         } else if (!snapshot.hasData ||
                             snapshot.data!.isEmpty) {
-                          return Center(
-                              child: Text('No blood requests found.'));
+                          return Center(child: Text('Kan isteği bulunamadı'));
                         } else {
                           final filteredRequests =
                               snapshot.data!.where((request) {
-                            if (_selectedBloodType != 'All' &&
+                            if (_selectedBloodType != 'Tümü' &&
                                 request.blood != _selectedBloodType) {
                               return false;
                             }
-                            if (_selectedAgeGroup != 'All') {
+                            if (_selectedAgeGroup != 'Tümü') {
                               final age = request.age;
                               switch (_selectedAgeGroup) {
                                 case '18-25':
@@ -359,8 +443,20 @@ class _HomeState extends State<Home> {
                                   break;
                               }
                             }
+                            if (_selectedCity != 'Tümü' &&
+                                request.cityy.toLowerCase() !=
+                                    _selectedCity.toLowerCase()) {
+                              return false;
+                            }
+                            if (_selectedDistrict != 'Tümü' &&
+                                request.districtt.toLowerCase() !=
+                                    _selectedDistrict.toLowerCase()) {
+                              return false;
+                            }
+
                             return true;
                           }).toList();
+
                           return ListView.builder(
                             itemCount: filteredRequests.length,
                             itemBuilder: (context, index) {
@@ -372,6 +468,8 @@ class _HomeState extends State<Home> {
                                 amount: request.amount,
                                 time: request.time,
                                 icon: Icon(Icons.bloodtype),
+                                cityy: request.cityy,
+                                districtt: request.districtt,
                                 onArrowPressed: () {
                                   Navigator.push(
                                     context,
@@ -382,7 +480,8 @@ class _HomeState extends State<Home> {
                                         patientAge: request.age,
                                         hospitalName: 'Hastane Adı',
                                         additionalInfo: 'Ek bilgi',
-                                        hospitalLocation: LatLng(41.0082, 28.9784),
+                                        hospitalLocation:
+                                            LatLng(41.0082, 28.9784),
                                       ),
                                     ),
                                   );
@@ -461,47 +560,65 @@ class _HomeState extends State<Home> {
     await Future.delayed(Duration(seconds: 2)); // Simulate network delay
     return [
       BloodRequest(
-          title: '2 Tüp Kan Bağışı Bekleniyor',
-          age: 23,
-          blood: '0+',
-          amount: 2,
-          time: '2 saat önce',
-          progress: 0.5),
+        title: '2 Tüp Kan Bağışı Bekleniyor',
+        age: 23,
+        blood: '0+',
+        amount: 2,
+        time: '2 saat önce',
+        progress: 0.5,
+        cityy: 'İstanbul',
+        districtt: 'Beşiktaş',
+      ),
       BloodRequest(
-          title: '2 Tüp Kan Bağışı Bekleniyor',
-          age: 35,
-          blood: 'A+',
-          amount: 2,
-          time: '2 saat önce',
-          progress: 0.75),
+        title: '2 Tüp Kan Bağışı Bekleniyor',
+        age: 35,
+        blood: 'A+',
+        amount: 2,
+        time: '2 saat önce',
+        progress: 0.75,
+        cityy: 'İstanbul',
+        districtt: 'Kadıköy',
+      ),
       BloodRequest(
-          title: '2 Tüp Kan Bağışı Bekleniyor',
-          age: 23,
-          blood: 'B+',
-          amount: 2,
-          time: '2 saat önce',
-          progress: 0.25),
+        title: '2 Tüp Kan Bağışı Bekleniyor',
+        age: 23,
+        blood: 'B+',
+        amount: 2,
+        time: '2 saat önce',
+        progress: 0.25,
+        cityy: 'İstanbul',
+        districtt: 'Kadıköy',
+      ),
       BloodRequest(
-          title: '2 Tüp Kan Bağışı Bekleniyor',
-          age: 16,
-          blood: '0+',
-          amount: 2,
-          time: '2 saat önce',
-          progress: 0.5),
+        title: '2 Tüp Kan Bağışı Bekleniyor',
+        age: 16,
+        blood: '0+',
+        amount: 2,
+        time: '2 saat önce',
+        progress: 0.5,
+        cityy: 'Ankara',
+        districtt: 'Çankaya',
+      ),
       BloodRequest(
-          title: '2 Tüp Kan Bağışı Bekleniyor',
-          age: 27,
-          blood: 'A+',
-          amount: 2,
-          time: '2 saat önce',
-          progress: 0.75),
+        title: '2 Tüp Kan Bağışı Bekleniyor',
+        age: 27,
+        blood: 'A+',
+        amount: 2,
+        time: '2 saat önce',
+        progress: 0.75,
+        cityy: 'Ankara',
+        districtt: 'Çankaya',
+      ),
       BloodRequest(
-          title: '2 Tüp Kan Bağışı Bekleniyor',
-          age: 55,
-          blood: 'B+',
-          amount: 2,
-          time: '2 saat önce',
-          progress: 0.25),
+        title: '2 Tüp Kan Bağışı Bekleniyor',
+        age: 55,
+        blood: 'B+',
+        amount: 2,
+        time: '2 saat önce',
+        progress: 0.25,
+        cityy: 'Ankara',
+        districtt: 'Çankaya',
+      ),
     ];
   }
 }
@@ -515,6 +632,8 @@ class _CustomCard extends StatelessWidget {
   final Icon icon;
   final VoidCallback onArrowPressed;
   final double progress;
+  final String cityy;
+  final String districtt;
 
   const _CustomCard({
     Key? key,
@@ -526,6 +645,8 @@ class _CustomCard extends StatelessWidget {
     required this.icon,
     required this.onArrowPressed,
     required this.progress,
+    required this.cityy,
+    required this.districtt,
   }) : super(key: key);
 
   @override
@@ -533,18 +654,17 @@ class _CustomCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RequestDetails(
-              bloodType: blood,
-              donorAmount: amount.toString(),
-              patientAge: age,
-              hospitalName: 'Hastane Adı',
-              additionalInfo: 'Ek bilgi',
-              hospitalLocation: LatLng(41.0082, 28.9784),
-            ),
-          )
-        );
+            context,
+            MaterialPageRoute(
+              builder: (context) => RequestDetails(
+                bloodType: blood,
+                donorAmount: amount.toString(),
+                patientAge: age,
+                hospitalName: 'Hastane Adı',
+                additionalInfo: 'Ek bilgi',
+                hospitalLocation: LatLng(41.0082, 28.9784),
+              ),
+            ));
       },
       child: Card(
         elevation: 4,
@@ -617,6 +737,30 @@ class _CustomCard extends StatelessWidget {
                 Text(blood),
               ]),
               SizedBox(height: 4),
+              Row(children: [
+                Text(
+                  'İl: ',
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'Roboto',
+                      color: Color(0xff1D1A20)),
+                ),
+                Text(cityy),
+              ]),
+              SizedBox(height: 4),
+              Row(children: [
+                Text(
+                  'İlçe: ',
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'Roboto',
+                      color: Color(0xff1D1A20)),
+                ),
+                Text(districtt),
+              ]),
+              SizedBox(height: 4),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -667,6 +811,8 @@ class BloodRequest {
   final int amount;
   final String time;
   final double progress;
+  final String cityy;
+  final String districtt;
 
   BloodRequest({
     required this.title,
@@ -675,5 +821,7 @@ class BloodRequest {
     required this.amount,
     required this.time,
     required this.progress,
+    required this.cityy,
+    required this.districtt,
   });
 }
