@@ -143,7 +143,7 @@ class _HomeState extends State<Home> {
       if (index == 0) {
         Navigator.pushNamed(context, '/');
       } else if (index == 1) {
-        Navigator.pushNamed(context, '/');
+        Navigator.pushNamed(context, '/my-requests');
       } else if (index == 2) {
         Auth().signOut();
       }
@@ -329,6 +329,7 @@ class _HomeState extends State<Home> {
                                         additionalInfo: 'Ek bilgi',
                                         hospitalLocation:
                                             LatLng(41.0082, 28.9784),
+                                        type: 'bloodRequest',
                                       ),
                                     ),
                                   );
@@ -510,6 +511,7 @@ class _CustomCard extends StatelessWidget {
                 hospitalName: 'Hastane Adı',
                 additionalInfo: 'Ek bilgi',
                 hospitalLocation: LatLng(41.0082, 28.9784),
+                type: 'bloodRequest',
               ),
             ));
       },

@@ -256,6 +256,7 @@ class _IsteklerimState extends State<MyRequests> {
                         hospitalName: 'Hastane Adı',
                         additionalInfo: 'Ek bilgi',
                         hospitalLocation: LatLng(41.0082, 28.9784),
+                        type: 'onTheWay',
                       ),
                     ),
                   );
@@ -319,6 +320,7 @@ class _IsteklerimState extends State<MyRequests> {
                         additionalInfo: 'Ek bilgi',
                         hospitalLocation:
                             LatLng(41.0082, 28.9784), // Mock location
+                        type: 'myRequest',
                       ),
                     ),
                   );

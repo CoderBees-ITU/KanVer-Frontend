@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:kanver/src/widgets/pressButton.dart';
 import 'package:kanver/src/widgets/requestDetailCard.dart';
 
 class RequestDetails extends StatelessWidget {
@@ -9,6 +10,7 @@ class RequestDetails extends StatelessWidget {
   final String hospitalName;
   final String additionalInfo;
   final LatLng hospitalLocation;
+  final String type;
 
   GoogleMapController? mapController;
 
@@ -19,6 +21,7 @@ class RequestDetails extends StatelessWidget {
     required this.hospitalName,
     required this.additionalInfo,
     required this.hospitalLocation,
+    required this.type,
   });
 
   void _onMapCreated(GoogleMapController controller) {
@@ -122,31 +125,30 @@ class RequestDetails extends StatelessWidget {
             child: Container(
               color: Colors.white,
               padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff65558F),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+              child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.stretch, // Ensures full width
+                children: [
+                  SizedBox(
+                    width: double.infinity, // Full width
+                    child: AnimatedPressButton(
+                      completeFunction: () {
+                        // Add your function here
+                        print('Button pressed');
+                      },
+                    ),
                   ),
-                ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return const AlertDialog(
-                        title: Text("Başlık"),
-                        content: Text("İçerik"),
-                      );
-                    },
-                  );
-                },
-                label: const Text("Bağış Yapacağım"),
-                icon: const Icon(Icons.check),
+                  const SizedBox(height: 8.0), // Add spacing
+                  const Text(
+                    "Bağış Yapmak İçin Basılı Tutun",
+                    style: TextStyle(color: Colors.black,
+                    fontSize: 12),  
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
-          ),
+          )
         ],
       ),
     );
