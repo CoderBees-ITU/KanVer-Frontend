@@ -66,22 +66,22 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      /* if (user == null) {
+      if (user == null) {
         Navigator.pushNamed(context, '/login');
       } else {
         if (ModalRoute.of(context)?.settings.name == '/') {
           Navigator.pushNamed(context, '/home');
         }
         print('User is signed in!');
-      }  */
+      }
     });
-    /* return Scaffold(
+    return Scaffold(
       body: Center(
         child: CircularProgressIndicator(),
       ),
-    ); */
+    );
 
-    return Scaffold(
+    /* return Scaffold(
       appBar: AppBar(
         title: const Text('KanVer'),
       ),
@@ -161,6 +161,6 @@ class MyApp extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ); */
   }
 }
