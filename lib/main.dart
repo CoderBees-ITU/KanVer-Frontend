@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kanver/services/auth_service.dart';
 import 'package:kanver/src/create-requestV1/createRequestV1.dart';
 import 'package:kanver/src/home/home.dart';
@@ -37,7 +38,14 @@ Future<void> main() async {
       routes: {
         '/': (context) => MyApp(),
         '/login': (context) => Login(),
-        '/request-details': (context) => RequestDetails(),
+        '/request-details': (context) => RequestDetails(
+          bloodType: 'A+', 
+          donorAmount: "2", 
+          patientAge: 30, 
+          hospitalName: 'City Hospital', 
+          additionalInfo: 'Urgent', 
+          hospitalLocation: LatLng(40.712776, -74.005974) // Example coordinates
+        ),
         '/create-requestV1': (context) => CreateRequestV1(),
         '/register': (context) => Register(),
         '/home': (context) => Home(),

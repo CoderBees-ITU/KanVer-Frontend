@@ -118,6 +118,8 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
     });
   }
 
+  String text = 'Hello World';
+
   /// Called when the user selects a new district from the dropdown
   Future<void> onDistrictSelected(String? districtName) async {
     if (districtName == null) {
@@ -182,6 +184,7 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
         isLoadingHospitals = false; // No valid search or API key
       });
     }
+    text = jsonEncode(hospitals[0]);
   }
 
   /// Save form to the database (mock function)
@@ -388,6 +391,15 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
                       ),
                       keyboardType: TextInputType.number,
                       onSaved: (value) => tcNumber = value,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'T.C. kimlik numarası gerekli';
+                        } else if (value.length != 11 ||
+                            !RegExp(r'^[0-9]+$').hasMatch(value)) {
+                          return 'T.C. kimlik numarası 11 haneli olmalıdır';
+                        }
+                        return null;
+                      },
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -695,7 +707,19 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  TextFormField(
+                  DropdownButtonFormField<int>(
+                    value: unitCount != null ? int.tryParse(unitCount!) : null,
+                    items: List.generate(10, (index) => index + 1)
+                        .map((number) => DropdownMenuItem<int>(
+                              value: number,
+                              child: Text(number.toString()),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        unitCount = value?.toString();
+                      });
+                    },
                     decoration: InputDecoration(
                       labelText: 'Adet...',
                       floatingLabelBehavior: FloatingLabelBehavior.never,
@@ -713,8 +737,9 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
                         horizontal: 15.0,
                       ),
                     ),
-                    keyboardType: TextInputType.number,
-                    onSaved: (value) => unitCount = value,
+                    dropdownColor: Colors.white,
+                    menuMaxHeight: 300.0,
+                    icon: const Icon(Icons.arrow_drop_down),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
