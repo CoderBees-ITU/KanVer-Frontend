@@ -55,7 +55,7 @@ class MyApp extends StatelessWidget {
       if (user == null) {
         Navigator.pushNamed(context, '/login');
       } else {
-        if(ModalRoute.of(context)?.settings.name == '/'){
+        if (ModalRoute.of(context)?.settings.name == '/') {
           Navigator.pushNamed(context, '/home');
         }
         print('User is signed in!');
@@ -67,76 +67,76 @@ class MyApp extends StatelessWidget {
       ),
     );
 
-    // return Scaffold(
-    //   appBar: AppBar(
-    //     title: const Text('KanVer'),
-    //   ),
-    //   body: Center(
-    //     child: ListView(
-    //       children: [
-    //         ElevatedButton(
-    //           style: ElevatedButton.styleFrom(
-    //             backgroundColor: Colors.red,
-    //             foregroundColor: Colors.white,
-    //           ),
-    //           onPressed: () {
-    //             Navigator.pushNamed(context, '/login');
-    //           },
-    //           child: Text("Login"),
-    //         ),
-    //         ElevatedButton(
-    //           style: ElevatedButton.styleFrom(
-    //             backgroundColor: Colors.red,
-    //             foregroundColor: Colors.white,
-    //           ),
-    //           onPressed: () {
-    //             Navigator.pushNamed(context, '/request-details');
-    //           },
-    //           child: Text("Request Details"),
-    //         ),
-    //         ElevatedButton(
-    //           style: ElevatedButton.styleFrom(
-    //             backgroundColor: Colors.red,
-    //             foregroundColor: Colors.white,
-    //           ),
-    //           onPressed: () {
-    //             Navigator.pushNamed(context, '/create-requestV1');
-    //           },
-    //           child: Text("Create Request V1"),
-    //         ),
-    //         ElevatedButton(
-    //           style: ElevatedButton.styleFrom(
-    //             backgroundColor: Colors.red,
-    //             foregroundColor: Colors.white,
-    //           ),
-    //           onPressed: () {
-    //             Navigator.pushNamed(context, '/register');
-    //           },
-    //           child: Text("Register"),
-    //         ),
-    //         ElevatedButton(
-    //           style: ElevatedButton.styleFrom(
-    //             backgroundColor: Colors.red,
-    //             foregroundColor: Colors.white,
-    //           ),
-    //           onPressed: () {
-    //             Auth().signOut();
-    //           },
-    //           child: Text("Sign Out"),
-    //         ),
-    //         ElevatedButton(
-    //           style: ElevatedButton.styleFrom(
-    //             backgroundColor: Colors.red,
-    //             foregroundColor: Colors.white,
-    //           ),
-    //           onPressed: () {
-    //             Navigator.pushNamed(context, '/home');
-    //           },
-    //           child: Text("Ana sayfa"),
-    //         ),
-    //       ],
-    //     ),
-    //   ),
-    // );
+    /* return Scaffold(
+      appBar: AppBar(
+        title: const Text('KanVer'),
+      ),
+      body: Center(
+        child: ListView(
+          children: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/login');
+              },
+              child: Text("Login"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/request-details');
+              },
+              child: Text("Request Details"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/create-requestV1');
+              },
+              child: Text("Create Request V1"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/register');
+              },
+              child: Text("Register"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Auth().signOut();
+              },
+              child: Text("Sign Out"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/home');
+              },
+              child: Text("Ana sayfa"),
+            ),
+          ],
+        ),
+      ),
+    ); */
   }
 }
