@@ -8,6 +8,7 @@ import 'package:kanver/src/widgets/CitySelectModal.dart';
 import 'package:location/location.dart' as loc;
 import 'package:geocoding/geocoding.dart';
 import 'package:location/location.dart';
+import 'package:kanver/src/isteklerim/isteklerim.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -382,7 +383,8 @@ class _HomeState extends State<Home> {
                                         patientAge: request.age,
                                         hospitalName: 'Hastane Adı',
                                         additionalInfo: 'Ek bilgi',
-                                        hospitalLocation: LatLng(41.0082, 28.9784),
+                                        hospitalLocation:
+                                            LatLng(41.0082, 28.9784),
                                       ),
                                     ),
                                   );
@@ -533,18 +535,17 @@ class _CustomCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RequestDetails(
-              bloodType: blood,
-              donorAmount: amount.toString(),
-              patientAge: age,
-              hospitalName: 'Hastane Adı',
-              additionalInfo: 'Ek bilgi',
-              hospitalLocation: LatLng(41.0082, 28.9784),
-            ),
-          )
-        );
+            context,
+            MaterialPageRoute(
+              builder: (context) => RequestDetails(
+                bloodType: blood,
+                donorAmount: amount.toString(),
+                patientAge: age,
+                hospitalName: 'Hastane Adı',
+                additionalInfo: 'Ek bilgi',
+                hospitalLocation: LatLng(41.0082, 28.9784),
+              ),
+            ));
       },
       child: Card(
         elevation: 4,
