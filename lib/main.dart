@@ -9,6 +9,7 @@ import 'package:kanver/src/register/register.dart';
 import 'package:kanver/src/request-details/requestDetails.dart';
 import 'package:inspector/inspector.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:kanver/src/isteklerim/isteklerim.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,6 +51,7 @@ Future<void> main() async {
         '/create-requestV1': (context) => CreateRequestV1(),
         '/register': (context) => Register(),
         '/home': (context) => Home(),
+        '/isteklerim': (context) => Isteklerim(),
       },
       builder: (context, child) =>
           Inspector(child: child!), // Wrap [child] with [Inspector]
@@ -142,6 +144,16 @@ class MyApp extends StatelessWidget {
                 Navigator.pushNamed(context, '/home');
               },
               child: Text("Ana sayfa"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/isteklerim');
+              },
+              child: Text("İsteklerim"),
             ),
           ],
         ),
