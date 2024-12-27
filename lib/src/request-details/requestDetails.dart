@@ -3,9 +3,23 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kanver/src/widgets/requestDetailCard.dart';
 
 class RequestDetails extends StatelessWidget {
+  final String bloodType;
+  final String donorAmount;
+  final int patientAge;
+  final String hospitalName;
+  final String additionalInfo;
+  final LatLng hospitalLocation;
+
   GoogleMapController? mapController;
 
-  final LatLng _center = const LatLng(41.097952, 28.990461);
+  RequestDetails({
+    required this.bloodType,
+    required this.donorAmount,
+    required this.patientAge,
+    required this.hospitalName,
+    required this.additionalInfo,
+    required this.hospitalLocation,
+  });
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -30,46 +44,45 @@ class RequestDetails extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const CustomCard(
+                CustomCard(
                   title: "Gereken Kan",
-                  desc: "0 rh-",
-                  icon: Icon(Icons.bloodtype),
+                  desc: bloodType,
+                  icon: const Icon(Icons.bloodtype),
                 ),
                 const SizedBox(height: 16),
-                const CustomCard(
+                CustomCard(
                   title: "Gereken Donör Sayısı",
-                  desc: "2 ünite kan",
-                  icon: Icon(Icons.monitor_heart),
+                  desc: donorAmount,
+                  icon: const Icon(Icons.monitor_heart),
                 ),
                 const SizedBox(height: 16),
-                const CustomCard(
+                CustomCard(
                   title: "Hasta Yaşı",
-                  desc: "23",
-                  icon: Icon(Icons.person),
+                  desc: patientAge.toString(),
+                  icon: const Icon(Icons.person),
                 ),
                 const SizedBox(height: 16),
-                const CustomCard(
+                CustomCard(
                   title: "Hastane",
-                  desc: "İstinye Sarıyer Devlet Hastanesi",
-                  icon: Icon(Icons.local_hospital),
+                  desc: hospitalName,
+                  icon: const Icon(Icons.local_hospital),
                 ),
                 const SizedBox(height: 16),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
                   child: RichText(
-                    text: const TextSpan(
-                      style: TextStyle(
+                    text: TextSpan(
+                      style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black,
                       ),
                       children: [
-                        TextSpan(
+                        const TextSpan(
                           text: 'Ek Bilgiler: ',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         TextSpan(
-                          text:
-                              'Hasta çok ağır bir trafik kazası geçirdi ve bugün akşam 8’de ameliyata girecek.',
+                          text: additionalInfo,
                         ),
                       ],
                     ),
@@ -82,15 +95,15 @@ class RequestDetails extends StatelessWidget {
                     child: GoogleMap(
                       onMapCreated: _onMapCreated,
                       initialCameraPosition: CameraPosition(
-                        target: _center,
+                        target: hospitalLocation,
                         zoom: 11.0,
                       ),
                       markers: {
                         Marker(
                           markerId: const MarkerId('center_marker'),
-                          position: _center,
-                          infoWindow: const InfoWindow(
-                            title: 'İstinye Sarıyer Devlet Hastanesi',
+                          position: hospitalLocation,
+                          infoWindow: InfoWindow(
+                            title: hospitalName,
                             snippet: 'Hastane Lokasyonu',
                           ),
                         ),

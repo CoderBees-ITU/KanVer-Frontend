@@ -1,6 +1,9 @@
 // ignore_for_file: prefer_const_constructors
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kanver/services/auth_service.dart';
+import 'package:kanver/src/create-requestV1/createRequestV1.dart';
+import 'package:kanver/src/request-details/requestDetails.dart';
 import 'package:kanver/src/widgets/CitySelectModal.dart';
 import 'package:location/location.dart' as loc;
 import 'package:geocoding/geocoding.dart';
@@ -127,9 +130,9 @@ class _HomeState extends State<Home> {
     setState(() {
       _selectedIndex = index;
       if (index == 0) {
-        Navigator.pushNamed(context, '/create-requestV1');
+        Navigator.pushNamed(context, '/');
       } else if (index == 1) {
-        Navigator.pushNamed(context, '/request-details');
+        Navigator.pushNamed(context, '/');
       } else if (index == 2) {
         Auth().signOut();
       }
@@ -140,6 +143,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text('İstekler'),
         actions: [],
       ),
@@ -372,9 +376,14 @@ class _HomeState extends State<Home> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          RequestDetailsScreen(
-                                              request: request),
+                                      builder: (context) => RequestDetails(
+                                        bloodType: request.blood,
+                                        donorAmount: request.amount.toString(),
+                                        patientAge: request.age,
+                                        hospitalName: 'Hastane Adı',
+                                        additionalInfo: 'Ek bilgi',
+                                        hospitalLocation: LatLng(41.0082, 28.9784),
+                                      ),
                                     ),
                                   );
                                 },
@@ -395,12 +404,12 @@ class _HomeState extends State<Home> {
       floatingActionButton: Align(
         alignment: Alignment.bottomRight, // Adjust position as needed
         child: Padding(
-          padding: const EdgeInsets.all(8.0), // Adjust padding for spacing
+          padding: const EdgeInsets.all(0), // Adjust padding for spacing
           child: ElevatedButton(
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => CreateRequestScreen()),
+                MaterialPageRoute(builder: (context) => CreateRequestV1()),
               );
             },
             style: ElevatedButton.styleFrom(
@@ -408,7 +417,7 @@ class _HomeState extends State<Home> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(43), // Rounded corners
               ),
-              minimumSize: Size(115, 56), // Custom size
+              minimumSize: Size(43, 43), // Custom size
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -418,16 +427,6 @@ class _HomeState extends State<Home> {
                   Icons.add,
                   size: 24,
                   color: Colors.white, // White icon color
-                ),
-                SizedBox(width: 8),
-                Text(
-                  'Oluştur',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white, // White text color
-                    fontFamily: 'Roboto',
-                  ),
                 ),
               ],
             ),
@@ -531,113 +530,130 @@ class _CustomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: Color(0xffE8DEF8),
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                        Color(0xff65558F)), // Custom progress color
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: Color(0xff1E1E1E),
-                  ),
-                  onPressed: onArrowPressed,
-                ),
-              ],
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RequestDetails(
+              bloodType: blood,
+              donorAmount: amount.toString(),
+              patientAge: age,
+              hospitalName: 'Hastane Adı',
+              additionalInfo: 'Ek bilgi',
+              hospitalLocation: LatLng(41.0082, 28.9784),
             ),
-            Row(
-              children: [
-                icon,
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: 'Roboto',
-                        color: Color(0xff1D1A20)),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 4),
-            Row(children: [
-              Text(
-                'Hasta Yaşı: ',
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: 'Roboto',
-                    color: Color(0xff1D1A20)),
-              ),
-              Text(age.toString()),
-            ]),
-            SizedBox(height: 4),
-            Row(children: [
-              Text(
-                'Kan Grubu: ',
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: 'Roboto',
-                    color: Color(0xff1D1A20)),
-              ),
-              Text(blood),
-            ]),
-            SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Row(children: [
-                      Text(
-                        'İstenen Donör: ',
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: 'Roboto',
-                            color: Color(0xff1D1A20)),
-                      ),
-                      Text(amount.toString()),
-                    ]),
-                  ),
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.access_time, size: 14),
-                        SizedBox(width: 4),
-                        Text(time),
-                      ],
+          )
+        );
+      },
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor: Color(0xffE8DEF8),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xff65558F)), // Custom progress color
                     ),
                   ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: Color(0xff1E1E1E),
+                    ),
+                    onPressed: onArrowPressed,
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  icon,
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: 'Roboto',
+                          color: Color(0xff1D1A20)),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 4),
+              Row(children: [
+                Text(
+                  'Hasta Yaşı: ',
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'Roboto',
+                      color: Color(0xff1D1A20)),
                 ),
-              ],
-            ),
-            SizedBox(height: 4),
-          ],
+                Text(age.toString()),
+              ]),
+              SizedBox(height: 4),
+              Row(children: [
+                Text(
+                  'Kan Grubu: ',
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'Roboto',
+                      color: Color(0xff1D1A20)),
+                ),
+                Text(blood),
+              ]),
+              SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Row(children: [
+                        Text(
+                          'İstenen Donör: ',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              fontFamily: 'Roboto',
+                              color: Color(0xff1D1A20)),
+                        ),
+                        Text(amount.toString()),
+                      ]),
+                    ),
+                  ),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.access_time, size: 14),
+                          SizedBox(width: 4),
+                          Text(time),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 4),
+            ],
+          ),
         ),
       ),
     );
@@ -660,39 +676,4 @@ class BloodRequest {
     required this.time,
     required this.progress,
   });
-}
-
-class RequestDetailsScreen extends StatelessWidget {
-  final BloodRequest request;
-
-  const RequestDetailsScreen({Key? key, required this.request})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(request.title),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Text(
-            '${request.amount} units of ${request.blood} blood needed. Age: ${request.age}. Time: ${request.time}'),
-      ),
-    );
-  }
-}
-
-class CreateRequestScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Create Request'),
-      ),
-      body: Center(
-        child: Text('Create Request Page'),
-      ),
-    );
-  }
 }
