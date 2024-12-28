@@ -255,15 +255,14 @@ class _HomeState extends State<Home> {
                   TextButton(
                     onPressed: () {
                       user.reload().then((_) {
-                        print("Email Verified: ${user.emailVerified}");
                         if (user.emailVerified) {
-                          // _emailVerificationTimer?.cancel();
+                          _emailVerificationTimer?.cancel();
                           Navigator.pop(context);
                           _initializeLocation();
                         }
                       });
                     },
-                    child: Text("I've Verified My Email"),
+                    child: Text("Mail Adresimi Doğruladım"),
                   ),
                 ],
               ),
@@ -439,6 +438,7 @@ class _HomeState extends State<Home> {
       cityy: request['cityy'],
       districtt: request['districtt'],
       progress: request['progress'],
+      request: request['request'],
       icon: const Icon(Icons.bloodtype),
       onArrowPressed: () {
         Navigator.push(
@@ -535,6 +535,10 @@ class _HomeState extends State<Home> {
   }
 }
 
+
+
+
+
 class _CustomCard extends StatelessWidget {
   final String title;
   final int age;
@@ -546,6 +550,7 @@ class _CustomCard extends StatelessWidget {
   final String progress;
   final String cityy;
   final String districtt;
+  final Map<String, dynamic> request;
 
   const _CustomCard({
     Key? key,
@@ -559,6 +564,7 @@ class _CustomCard extends StatelessWidget {
     required this.progress,
     required this.cityy,
     required this.districtt,
+    required this.request,
   }) : super(key: key);
 
   @override
@@ -572,9 +578,12 @@ class _CustomCard extends StatelessWidget {
               bloodType: blood,
               donorAmount: amount.toString(),
               patientAge: age,
-              hospitalName: 'Hastane Adı',
-              additionalInfo: 'Ek bilgi',
-              hospitalLocation: const LatLng(41.0082, 28.9784),
+              hospitalName:  request['Hospital'],
+              additionalInfo: request['Note'],
+              hospitalLocation: LatLng(
+                double.tryParse(request['Lat']?.toString() ?? '0') ?? 0.0,
+                double.tryParse(request['Lng']?.toString() ?? '0') ?? 0.0,
+              ),
               type: 'bloodRequest',
             ),
           ),
