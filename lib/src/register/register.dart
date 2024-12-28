@@ -114,8 +114,8 @@ class _RegisterState extends State<Register> {
       'B-',
       'AB+',
       'AB-',
-      'O+',
-      'O-',
+      '0+',
+      '0-',
     ];
 
     return Stack(
@@ -448,7 +448,7 @@ class _RegisterState extends State<Register> {
                           ),
                           items: bloodTypes.map((bloodType) {
                             return DropdownMenuItem<String>(
-                              value: bloodType,
+                              value: bloodType.toString(),
                               child: Text(bloodType),
                             );
                           }).toList(),
