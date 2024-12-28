@@ -145,6 +145,33 @@ class AuthService {
       return {'success': false, 'message': e.toString()};
     }
   }
+
+  Future<Map<String, dynamic>> getUserData() async {
+    String uid = FirebaseAuth.instance.currentUser!.uid;
+    final url = Uri.parse("$_baseUrl/user/$uid");
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'data': data};
+      } else {
+        throw Exception(
+          "Failed to get user data: ${response.statusCode} - ${response.body}",
+        );
+      }
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+
+
+
 }
 
 Future<Map<String, dynamic>> validateUserDetails({

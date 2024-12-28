@@ -44,74 +44,9 @@ class _IsteklerimState extends State<MyRequests> {
   @override
   void initState() {
     super.initState();
-    _initializeLocation();
-    // _fetchUserBloodType();
   }
 
-  Future<void> _initializeLocation() async {
-    try {
-      // Check if location services are enabled
-      _serviceEnabled = await _location.serviceEnabled();
-      if (!_serviceEnabled) {
-        _serviceEnabled = await _location.requestService();
-        if (!_serviceEnabled) {
-          _showError("Location services are disabled. Please enable them.");
-          return;
-        }
-      }
 
-      // Check for location permission
-      _permissionGranted = await _location.hasPermission();
-      if (_permissionGranted == PermissionStatus.denied) {
-        _permissionGranted = await _location.requestPermission();
-        if (_permissionGranted != PermissionStatus.granted) {
-          _showCitySelectionModal();
-          return;
-        }
-      }
-
-      // Retrieve location data
-      _locationData = await _location.getLocation();
-      print(
-          "Location Data: ${_locationData.latitude}, ${_locationData.longitude}");
-
-      // Fetch city and district using geocoding
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        _locationData.latitude!,
-        _locationData.longitude!,
-      );
-
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
-        String? city = place.administrativeArea; // City name
-        String? district = place.subAdministrativeArea; // District name
-
-        print("City (İl): $city");
-        print("District (İlçe): $district");
-      }
-    } catch (e) {
-      _showError("Failed to get location: $e");
-    }
-  }
-
-  void _showCitySelectionModal() {
-    showModalBottomSheet(
-      context: context,
-      isDismissible: false,
-      enableDrag: false,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return CitySelectionModal();
-      },
-    ).then((result) {
-      if (result != null) {
-        print(
-            "Selected City: ${result['city']}, District: ${result['district']}");
-      }
-    });
-  }
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -119,27 +54,7 @@ class _IsteklerimState extends State<MyRequests> {
     );
   }
 
-  void _showPermissionDeniedModal() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Permission Denied"),
-          content: Text(
-              "Location permission is denied. Please enable it in the app settings."),
-          actions: [
-            TextButton(
-              child: Text("OK"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
+ 
   // Navigation logic
   void _onItemTapped(int index) {
     setState(() {

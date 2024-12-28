@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 // Make sure this import actually provides APIKey().MapsApiKey
 import 'package:kanver/services/auth_service.dart';
+import 'package:kanver/services/request_service.dart';
 
 class CreateRequestV1 extends StatefulWidget {
   const CreateRequestV1({Key? key}) : super(key: key);
@@ -189,7 +190,7 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
   }
 
   /// Save form to the database (mock function)
-  void _saveForm() {
+  void _saveForm() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
@@ -206,8 +207,29 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
         'additionalInfo': additionalInfo,
       };
 
-      // Mock saving to a database
-      debugPrint('Form Saved: $formData');
+      dynamic response = await BloodRequestService().createBloodRequest(
+        requestedTcId: 46909942744,
+        patientTcId: int.tryParse(tcNumber ?? '0') ?? 0,
+        bloodType: bloodGroup ?? '',
+        donorCount: int.tryParse(unitCount ?? '0') ?? 0,
+        patientAge: int.tryParse(age ?? '0') ?? 0,
+        hospital: jsonDecode(selectedHospital!),
+        note: additionalInfo ?? '',
+        gender: "Erkek",
+        city: selectedCity!,
+        district: selectedDistrict!,
+        patientName : "Ali", 
+        patientSurname : "Veli2",
+      );
+      if(response['success']){
+        print("Request created successfully");
+        Navigator.pop(context);
+      }else{
+        showAboutDialog(context: context, applicationName: "Error", children: [Text("Error creating request")]);
+      }
+        
+
+        
 
       // Show confirmation
       ScaffoldMessenger.of(context).showSnackBar(

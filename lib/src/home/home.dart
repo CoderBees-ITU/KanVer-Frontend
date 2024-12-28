@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kanver/services/auth_service.dart';
+import 'package:kanver/services/request_service.dart';
 import 'package:kanver/src/create-requestV1/createRequestV1.dart';
 import 'package:kanver/src/request-details/requestDetails.dart';
 import 'package:kanver/src/widgets/CitySelectModal.dart';
@@ -15,46 +16,53 @@ import 'package:location/location.dart' as loc;
 import 'package:geocoding/geocoding.dart';
 import 'package:location/location.dart';
 import 'package:kanver/src/myRequests/myRequests.dart';
+import 'package:intl/intl.dart';
 
 class Home extends StatefulWidget {
+  const Home({Key? key}) : super(key: key);
+
   @override
   _HomeState createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
   int _selectedIndex = 0;
-
+  bool _locationGet = false;
   String _selectedBloodType = 'Tümü';
-  String _selectedAgeGroup = 'Tümü';
   String _selectedCity = 'Tümü';
   String _selectedDistrict = "Tümü";
-  List<dynamic> _cities = ["Tümü"];
-  List<dynamic> _districts = [
+  final List<String> _cities = ["Tümü"];
+  final List<Map<String, String>> _districts = [
     {"ilce_adi": "Tümü"}
   ];
 
-  // Location instance
   final loc.Location _location = loc.Location();
-
   late bool _serviceEnabled;
   late PermissionStatus _permissionGranted;
   late LocationData _locationData;
-  User user = Auth().user!;
-  bool _emailVerificationSent = false; // Add this to the state
-  bool _mailSent = false;
+  late User user;
+  bool _emailVerificationSent = false;
   Timer? _emailVerificationTimer;
+  late Future<List<Map<String, dynamic>>> _fetchRequestsFuture;
 
   @override
   void initState() {
     super.initState();
-    if (user == null) {
-      Navigator.pushNamed(context, '/login');
+    _initializeUser();
+    _initializeRequests();
+  }
+
+  void _initializeUser() {
+    user = Auth().user!;
+    if (user.email == null) {
+      Navigator.pushReplacementNamed(context, '/login');
+      return;
     }
 
-    if (user != null && !user.emailVerified) {
+    if (!user.emailVerified) {
       _emailVerification();
       _showEmailVerificationModal();
-    }else{
+    } else if (!_locationGet) {
       _initializeLocation();
     }
   }
@@ -65,12 +73,48 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
+  Future<void> _initializeRequests() async {
+    _fetchRequestsFuture = fetchBloodRequests();
+  }
+
+  Future<List<Map<String, dynamic>>> fetchBloodRequests() async {
+    try {
+      final data = await BloodRequestService().getBloodRequests(
+        bloodType: _selectedBloodType,
+        city: _selectedCity,
+        district: _selectedDistrict,
+      );
+
+      if (data['success'] != true) {
+        _showError(data['message']);
+        return [];
+      }
+
+      return List<Map<String, dynamic>>.from(data['data'].map((request) {
+        return {
+          'title': "${request['Patient_Name']} için kan aranıyor",
+          'age': request['Age'] ?? 0,
+          'blood': request['Blood_Type'] ?? 'N/A',
+          'amount': request['Donor_Count'] ?? 0,
+          'time': DateTime.parse(request['Create_Time']),
+          'progress': request['Status'] ?? 'Unknown',
+          'cityy': request['City'] ?? 'N/A',
+          'districtt': request['District'] ?? 'N/A',
+          'request': request,
+        };
+      }));
+    } catch (e) {
+      _showError("İstekler yüklenirken hata oluştu: $e");
+      return [];
+    }
+  }
+
   Future<void> _emailVerification() async {
     if (_emailVerificationSent) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text(
-              "A verification email has already been sent. Please check your inbox."),
+              "Doğrulama e-postası zaten gönderildi. Lütfen gelen kutunuzu kontrol edin."),
         ),
       );
       return;
@@ -81,76 +125,57 @@ class _HomeState extends State<Home> {
       setState(() {
         _emailVerificationSent = true;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              "A verification email has been sent. Please check your inbox."),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to send email verification: $e")),
-      );
-    }
 
-    // Start polling for email verification status
-    _emailVerificationTimer =
-        Timer.periodic(Duration(seconds: 5), (timer) async {
-      await user.reload();
-      if (user.emailVerified) {
-        timer.cancel();
-        setState(() {});
-        Navigator.pop(context); // Close modal
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Email verified successfully!")),
-        );
-      }
-    });
+      _startEmailVerificationTimer();
+    } catch (e) {
+      _showError("E-posta doğrulama gönderilemedi: $e");
+    }
+  }
+
+  void _startEmailVerificationTimer() {
+    _emailVerificationTimer = Timer.periodic(
+      const Duration(seconds: 5),
+      (timer) async {
+        await user.reload();
+        if (user.emailVerified) {
+          timer.cancel();
+          setState(() {});
+          Navigator.pop(context);
+          _showSuccess("E-posta başarıyla doğrulandı!");
+          _initializeLocation();
+        }
+      },
+    );
   }
 
   Future<void> _initializeLocation() async {
     try {
-      // Check if location services are enabled
       _serviceEnabled = await _location.serviceEnabled();
       if (!_serviceEnabled) {
         _serviceEnabled = await _location.requestService();
         if (!_serviceEnabled) {
-          _showError("Location services are disabled. Please enable them.");
+          _showError("Konum servisleri kapalı. Lütfen etkinleştirin.");
           return;
         }
       }
 
-      // Check for location permission
       _permissionGranted = await _location.hasPermission();
       if (_permissionGranted == PermissionStatus.denied) {
         _permissionGranted = await _location.requestPermission();
-        if (_permissionGranted != PermissionStatus.granted) {
+        final userData = await AuthService().getUserData();
+        final user = userData['data'];
+
+        if (_permissionGranted != PermissionStatus.granted &&
+            user['City'] == null) {
           _showCitySelectionModal();
           return;
         }
       }
 
-      // Retrieve location data
       _locationData = await _location.getLocation();
-      print(
-          "Location Data: ${_locationData.latitude}, ${_locationData.longitude}");
-
-      // Fetch city and district using geocoding
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        _locationData.latitude!,
-        _locationData.longitude!,
-      );
-
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
-        String? city = place.administrativeArea; // City name
-        String? district = place.subAdministrativeArea; // District name
-        if(city != null && district != null){
-          AuthService().updateLocation(city: city, district: district);
-        }
-      }
+      await _updateLocationData();
     } catch (e) {
-      _showError("Failed to get location: $e");
+      // _showError("Konum alınamadı: $e");
     }
   }
 
@@ -172,49 +197,7 @@ class _HomeState extends State<Home> {
       }
     });
   }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
-  void _showPermissionDeniedModal() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Permission Denied"),
-          content: Text(
-              "Location permission is denied. Please enable it in the app settings."),
-          actions: [
-            TextButton(
-              child: Text("OK"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Navigation logic
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-      if (index == 0) {
-        Navigator.pushNamed(context, '/');
-      } else if (index == 1) {
-        Navigator.pushNamed(context, '/my-requests');
-      } else if (index == 2) {
-        Auth().signOut();
-      }
-    });
-  }
-
-  void _showEmailVerificationModal() {
+void _showEmailVerificationModal() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showModalBottomSheet(
         context: context,
@@ -273,7 +256,7 @@ class _HomeState extends State<Home> {
                       user.reload().then((_) {
                         print("Email Verified: ${user.emailVerified}");
                         if (user.emailVerified) {
-                          _emailVerificationTimer?.cancel();
+                          // _emailVerificationTimer?.cancel();
                           Navigator.pop(context);
                           _initializeLocation();
                         }
@@ -290,324 +273,259 @@ class _HomeState extends State<Home> {
     });
   }
 
+  Future<void> _updateLocationData() async {
+    try {
+      final placemarks = await placemarkFromCoordinates(
+        _locationData.latitude!,
+        _locationData.longitude!,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks[0];
+        final city = place.administrativeArea;
+        final district = place.subAdministrativeArea;
+
+        if (city != null && district != null) {
+          await AuthService().updateLocation(city: city, district: district);
+        }
+      }
+    } catch (e) {
+      _showError("Konum bilgisi güncellenemedi: $e");
+    }
+  }
+
+  void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+      switch (index) {
+        case 0:
+          Navigator.pushReplacementNamed(context, '/');
+          break;
+        case 1:
+          Navigator.pushNamed(context, '/my-requests');
+          break;
+        case 2:
+          Auth().signOut();
+          break;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text('İstekler'),
-        actions: [],
+        title: const Text('İstekler'),
       ),
       body: Column(
         children: [
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0), // Outer padding
-
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    Color(0xff625B71), // Adjust the color to match the design
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                fixedSize: Size(double.infinity, 40.0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18.0),
-                ),
-              ),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(20)),
-                  ),
-                  builder: (BuildContext context) {
-                    return FilterModal(
-                      onBloodTypeSelected: (String? bloodType) {
-                        setState(() {
-                          _selectedBloodType = bloodType ?? 'Tümü';
-                        });
-                      },
-                      onCitySelected: (String? city) {
-                        setState(() {
-                          _selectedCity = city ?? 'Tümü';
-                        });
-                      },
-                      onDistrictSelected: (String? district) {
-                        setState(() {
-                          _selectedDistrict = district ?? 'Tümü';
-                        });
-                      },
-                    );
-                  },
-                ).then((result) {
-                  if (result != null) {
-                    print(
-                        "Selected City: ${result['city']}, District: ${result['district']}");
-                  }
-                });
-              },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Filtrele",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: 'Roboto',
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      IconButton(
-                          padding: EdgeInsets.zero,
-                          icon: Icon(
-                            Icons.filter_list,
-                            color: Colors.white,
-                            size: 24.0,
-                          ),
-                          onPressed: () {}),
-                      IconButton(
-                          padding: EdgeInsets.zero,
-                          icon: Icon(
-                            Icons.filter_alt_outlined,
-                            color: Colors.white,
-                            size: 24.0,
-                          ),
-                          onPressed: () {}),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _buildFilterButton(),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 0.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: FutureBuilder<List<BloodRequest>>(
-                      future: fetchBloodRequests(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
-                        } else if (snapshot.hasError) {
-                          return Center(
-                              child: Text('Error: ${snapshot.error}'));
-                        } else if (!snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
-                          return Center(child: Text('Kan isteği bulunamadı'));
-                        } else {
-                          final filteredRequests =
-                              snapshot.data!.where((request) {
-                            if (_selectedBloodType != 'Tümü' &&
-                                request.blood != _selectedBloodType) {
-                              return false;
-                            }
-                            if (_selectedAgeGroup != 'Tümü') {
-                              final age = request.age;
-                              switch (_selectedAgeGroup) {
-                                case '18-25':
-                                  if (age < 18 || age > 25) return false;
-                                  break;
-                                case '26-35':
-                                  if (age < 26 || age > 35) return false;
-                                  break;
-                                case '36-45':
-                                  if (age < 36 || age > 45) return false;
-                                  break;
-                                case '46-60':
-                                  if (age < 46 || age > 60) return false;
-                                  break;
-                                case '60+':
-                                  if (age < 60) return false;
-                                  break;
-                              }
-                            }
-                            if (_selectedCity != 'Tümü' &&
-                                request.cityy.toLowerCase() !=
-                                    _selectedCity.toLowerCase()) {
-                              return false;
-                            }
-                            if (_selectedDistrict != 'Tümü' &&
-                                request.districtt.toLowerCase() !=
-                                    _selectedDistrict.toLowerCase()) {
-                              return false;
-                            }
-
-                            return true;
-                          }).toList();
-
-                          return ListView.builder(
-                            itemCount: filteredRequests.length,
-                            itemBuilder: (context, index) {
-                              final request = filteredRequests[index];
-                              return _CustomCard(
-                                title: request.title,
-                                age: request.age,
-                                blood: request.blood,
-                                amount: request.amount,
-                                time: request.time,
-                                icon: Icon(Icons.bloodtype),
-                                cityy: request.cityy,
-                                districtt: request.districtt,
-                                onArrowPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => RequestDetails(
-                                        bloodType: request.blood,
-                                        donorAmount: request.amount.toString(),
-                                        patientAge: request.age,
-                                        hospitalName: 'Hastane Adı',
-                                        additionalInfo: 'Ek bilgi',
-                                        hospitalLocation:
-                                            LatLng(41.0082, 28.9784),
-                                        type: 'bloodRequest',
-                                      ),
-                                    ),
-                                  );
-                                },
-                                progress: request.progress,
-                              );
-                            },
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: _buildRequestsList(),
             ),
           ),
         ],
       ),
-      floatingActionButton: Align(
-        alignment: Alignment.bottomRight, // Adjust position as needed
-        child: Padding(
-          padding: const EdgeInsets.all(0), // Adjust padding for spacing
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CreateRequestV1()),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF6B548D), // Purple background color
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(43), // Rounded corners
-              ),
-              minimumSize: Size(43, 43), // Custom size
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.add,
-                  size: 24,
-                  color: Colors.white, // White icon color
-                ),
-              ],
-            ),
+      floatingActionButton: _buildFloatingActionButton(),
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
+
+  Widget _buildFilterButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xff625B71),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          fixedSize: const Size(double.infinity, 40.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18.0),
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Ana Sayfa",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: "İsteklerim",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "My Profile",
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: const Color(0xff65558F),
-        unselectedItemColor: Colors.grey,
+        onPressed: _showFilterModal,
+        child: _buildFilterButtonContent(),
       ),
     );
   }
 
-  Future<List<BloodRequest>> fetchBloodRequests() async {
-    // Mock data
-    await Future.delayed(Duration(seconds: 2)); // Simulate network delay
-    return [
-      BloodRequest(
-        title: '2 Tüp Kan Bağışı Bekleniyor',
-        age: 23,
-        blood: '0+',
-        amount: 2,
-        time: '2 saat önce',
-        progress: 0.5,
-        cityy: 'İstanbul',
-        districtt: 'Beşiktaş',
+  Widget _buildFilterButtonContent() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text(
+          "Filtrele",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16.0,
+            fontWeight: FontWeight.w500,
+            fontFamily: 'Roboto',
+          ),
+        ),
+        Row(
+          children: [
+            IconButton(
+              padding: EdgeInsets.zero,
+              icon: const Icon(
+                Icons.filter_list,
+                color: Colors.white,
+                size: 24.0,
+              ),
+              onPressed: () {},
+            ),
+            IconButton(
+              padding: EdgeInsets.zero,
+              icon: const Icon(
+                Icons.filter_alt_outlined,
+                color: Colors.white,
+                size: 24.0,
+              ),
+              onPressed: () {},
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRequestsList() {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _fetchRequestsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(child: Text("Hata: ${snapshot.error}"));
+        }
+
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text("Kan isteği bulunmamaktadır."));
+        }
+
+        return ListView.builder(
+          itemCount: snapshot.data!.length,
+          itemBuilder: (context, index) =>
+              _buildRequestCard(snapshot.data![index]),
+        );
+      },
+    );
+  }
+
+  Widget _buildRequestCard(Map<String, dynamic> request) {
+    return _CustomCard(
+      title: request['title'],
+      age: request['age'],
+      blood: request['blood'],
+      amount: request['amount'],
+      time: request['time'],
+      cityy: request['cityy'],
+      districtt: request['districtt'],
+      progress: request['progress'],
+      icon: const Icon(Icons.bloodtype),
+      onArrowPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RequestDetails(
+              bloodType: request['blood'],
+              donorAmount: request['amount'].toString(),
+              patientAge: request['age'],
+              hospitalName: 'Hastane Adı',
+              additionalInfo: 'Ek bilgi',
+              hospitalLocation: const LatLng(41.0082, 28.9784),
+              type: 'bloodRequest',
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFloatingActionButton() {
+    return Align(
+      alignment: Alignment.bottomRight,
+      child: ElevatedButton(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CreateRequestV1()),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF6B548D),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(43),
+          ),
+          minimumSize: const Size(43, 43),
+        ),
+        child: const Icon(Icons.add, size: 24, color: Colors.white),
       ),
-      BloodRequest(
-        title: '2 Tüp Kan Bağışı Bekleniyor',
-        age: 35,
-        blood: 'A+',
-        amount: 2,
-        time: '2 saat önce',
-        progress: 0.75,
-        cityy: 'İstanbul',
-        districtt: 'Kadıköy',
+    );
+  }
+
+  Widget _buildBottomNavigationBar() {
+    return BottomNavigationBar(
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: "Ana Sayfa",
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.list),
+          label: "İsteklerim",
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: "Profilim",
+        ),
+      ],
+      currentIndex: _selectedIndex,
+      onTap: _onItemTapped,
+      selectedItemColor: const Color(0xff65558F),
+      unselectedItemColor: Colors.grey,
+    );
+  }
+
+  void _showFilterModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      BloodRequest(
-        title: '2 Tüp Kan Bağışı Bekleniyor',
-        age: 23,
-        blood: 'B+',
-        amount: 2,
-        time: '2 saat önce',
-        progress: 0.25,
-        cityy: 'İstanbul',
-        districtt: 'Kadıköy',
+      builder: (BuildContext context) => FilterModal(
+        onBloodTypeSelected: (String? bloodType) {
+          setState(() {
+            _selectedBloodType = bloodType ?? 'Tümü';
+          });
+        },
+        onCitySelected: (String? city) {
+          setState(() {
+            _selectedCity = city ?? 'Tümü';
+          });
+        },
+        onDistrictSelected: (String? district) {
+          setState(() {
+            _selectedDistrict = district ?? 'Tümü';
+          });
+        },
       ),
-      BloodRequest(
-        title: '2 Tüp Kan Bağışı Bekleniyor',
-        age: 16,
-        blood: '0+',
-        amount: 2,
-        time: '2 saat önce',
-        progress: 0.5,
-        cityy: 'Ankara',
-        districtt: 'Çankaya',
-      ),
-      BloodRequest(
-        title: '2 Tüp Kan Bağışı Bekleniyor',
-        age: 27,
-        blood: 'A+',
-        amount: 2,
-        time: '2 saat önce',
-        progress: 0.75,
-        cityy: 'Ankara',
-        districtt: 'Çankaya',
-      ),
-      BloodRequest(
-        title: '2 Tüp Kan Bağışı Bekleniyor',
-        age: 55,
-        blood: 'B+',
-        amount: 2,
-        time: '2 saat önce',
-        progress: 0.25,
-        cityy: 'Ankara',
-        districtt: 'Çankaya',
-      ),
-    ];
+    );
   }
 }
 
@@ -616,10 +534,10 @@ class _CustomCard extends StatelessWidget {
   final int age;
   final String blood;
   final int amount;
-  final String time;
+  final DateTime time;
   final Icon icon;
   final VoidCallback onArrowPressed;
-  final double progress;
+  final String progress;
   final String cityy;
   final String districtt;
 
@@ -642,18 +560,19 @@ class _CustomCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => RequestDetails(
-                bloodType: blood,
-                donorAmount: amount.toString(),
-                patientAge: age,
-                hospitalName: 'Hastane Adı',
-                additionalInfo: 'Ek bilgi',
-                hospitalLocation: LatLng(41.0082, 28.9784),
-                type: 'bloodRequest',
-              ),
-            ));
+          context,
+          MaterialPageRoute(
+            builder: (context) => RequestDetails(
+              bloodType: blood,
+              donorAmount: amount.toString(),
+              patientAge: age,
+              hospitalName: 'Hastane Adı',
+              additionalInfo: 'Ek bilgi',
+              hospitalLocation: const LatLng(41.0082, 28.9784),
+              type: 'bloodRequest',
+            ),
+          ),
+        );
       },
       child: Card(
         elevation: 4,
@@ -665,131 +584,136 @@ class _CustomCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      backgroundColor: Color(0xffE8DEF8),
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                          Color(0xff65558F)), // Custom progress color
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.arrow_forward_ios,
-                      size: 16,
-                      color: Color(0xff1E1E1E),
-                    ),
-                    onPressed: onArrowPressed,
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  icon,
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: 'Roboto',
-                          color: Color(0xff1D1A20)),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 4),
-              Row(children: [
-                Text(
-                  'Hasta Yaşı: ',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: 'Roboto',
-                      color: Color(0xff1D1A20)),
-                ),
-                Text(age.toString()),
-              ]),
-              SizedBox(height: 4),
-              Row(children: [
-                Text(
-                  'Kan Grubu: ',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: 'Roboto',
-                      color: Color(0xff1D1A20)),
-                ),
-                Text(blood),
-              ]),
-              SizedBox(height: 4),
-              Row(children: [
-                Text(
-                  'İl: ',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: 'Roboto',
-                      color: Color(0xff1D1A20)),
-                ),
-                Text(cityy),
-              ]),
-              SizedBox(height: 4),
-              Row(children: [
-                Text(
-                  'İlçe: ',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: 'Roboto',
-                      color: Color(0xff1D1A20)),
-                ),
-                Text(districtt),
-              ]),
-              SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Row(children: [
-                        Text(
-                          'İstenen Donör: ',
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              fontFamily: 'Roboto',
-                              color: Color(0xff1D1A20)),
-                        ),
-                        Text(amount.toString()),
-                      ]),
-                    ),
-                  ),
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.access_time, size: 14),
-                          SizedBox(width: 4),
-                          Text(time),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 4),
+              _buildCardHeader(),
+              _buildPatientInfo(),
+              _buildLocationInfo(),
+              _buildDonorInfo(),
             ],
           ),
         ),
       ),
     );
+  }
+  // Previous code remains the same until _CustomCard class's _buildCardHeader
+
+  Widget _buildCardHeader() {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(progress.toString()),
+        ),
+        IconButton(
+          icon: const Icon(
+            Icons.arrow_forward_ios,
+            size: 16,
+            color: Color(0xff1E1E1E),
+          ),
+          onPressed: onArrowPressed,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPatientInfo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            icon,
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'Roboto',
+                  color: Color(0xff1D1A20),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        _buildInfoRow('Hasta Yaşı: ', age.toString()),
+        const SizedBox(height: 4),
+        _buildInfoRow('Kan Grubu: ', blood),
+      ],
+    );
+  }
+
+  Widget _buildLocationInfo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 4),
+        _buildInfoRow('İl: ', cityy),
+        const SizedBox(height: 4),
+        _buildInfoRow('İlçe: ', districtt),
+      ],
+    );
+  }
+
+  Widget _buildDonorInfo() {
+    return Column(
+      children: [
+        const SizedBox(height: 4),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: _buildInfoRow('İstenen Donör: ', amount.toString()),
+            ),
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.access_time, size: 14),
+                    const SizedBox(width: 4),
+                    Text(_formatTime(time)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            fontFamily: 'Roboto',
+            color: Color(0xff1D1A20),
+          ),
+        ),
+        Text(value),
+      ],
+    );
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays} gün önce';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} saat önce';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} dakika önce';
+    } else {
+      return 'Az önce';
+    }
   }
 }
 
@@ -802,8 +726,9 @@ class BloodRequest {
   final double progress;
   final String cityy;
   final String districtt;
+  final Map<String, dynamic> request;
 
-  BloodRequest({
+  const BloodRequest({
     required this.title,
     required this.age,
     required this.blood,
@@ -812,5 +737,20 @@ class BloodRequest {
     required this.progress,
     required this.cityy,
     required this.districtt,
+    required this.request,
   });
+
+  factory BloodRequest.fromJson(Map<String, dynamic> json) {
+    return BloodRequest(
+      title: "${json['Patient_Name']} için kan aranıyor",
+      age: json['Age'] ?? 0,
+      blood: json['Blood_Type'] ?? 'N/A',
+      amount: json['Donor_Count'] ?? 0,
+      time: json['Create_Time'] ?? '',
+      progress: json['Status'] ?? 0.0,
+      cityy: json['City'] ?? 'N/A',
+      districtt: json['District'] ?? 'N/A',
+      request: json,
+    );
+  }
 }
