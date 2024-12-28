@@ -99,7 +99,7 @@ class RequestDetails extends StatelessWidget {
                       onMapCreated: _onMapCreated,
                       initialCameraPosition: CameraPosition(
                         target: hospitalLocation,
-                        zoom: 11.0,
+                        zoom: 15.0,
                       ),
                       markers: {
                         Marker(

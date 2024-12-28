@@ -197,7 +197,8 @@ class _HomeState extends State<Home> {
       }
     });
   }
-void _showEmailVerificationModal() {
+
+  void _showEmailVerificationModal() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showModalBottomSheet(
         context: context,
@@ -447,9 +448,14 @@ void _showEmailVerificationModal() {
               bloodType: request['blood'],
               donorAmount: request['amount'].toString(),
               patientAge: request['age'],
-              hospitalName: 'Hastane Adı',
-              additionalInfo: 'Ek bilgi',
-              hospitalLocation: const LatLng(41.0082, 28.9784),
+              hospitalName: request['request']['Hospital'],
+              additionalInfo: request['request']['Note'],
+              hospitalLocation: LatLng(
+                double.tryParse(request['request']['Lat']?.toString() ?? '0') ??
+                    0.0,
+                double.tryParse(request['request']['Lng']?.toString() ?? '0') ??
+                    0.0,
+              ),
               type: 'bloodRequest',
             ),
           ),
