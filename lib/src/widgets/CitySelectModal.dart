@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:kanver/services/auth_service.dart';
 
 class CitySelectionModal extends StatefulWidget {
   @override
@@ -89,6 +90,10 @@ class _CitySelectionModalState extends State<CitySelectionModal> {
             onPressed: () {
               if (selectedCity != null && selectedDistrict != null) {
                 print("Selected City: $selectedCity, District: $selectedDistrict");
+                AuthService().updateLocation(
+                  city: selectedCity!,
+                  district: selectedDistrict!,
+                );
                 Navigator.pop(context, {
                   'city': selectedCity,
                   'district': selectedDistrict,

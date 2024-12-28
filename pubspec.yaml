@@ -45,6 +45,8 @@ dependencies:
   firebase_core: ^3.8.1
   geocoding: ^3.0.0
   google_maps_flutter: ^2.10.0
+  flutter_native_splash: ^2.4.3
+
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +66,8 @@ dev_dependencies:
 flutter:
   assets:
     - assets/il-ilce.json
+    - assets/splash.png
+    - assets/heart.png
 
 
   # The following line ensures that the Material Icons font is
@@ -118,6 +122,15 @@ flutter:
         - asset: assets/fonts/Roboto/Roboto-Medium.ttf
           weight: 400
 
-  
+flutter_native_splash:
+  image: assets/heart.png
+  color: "#ffffff"
+  color_dark: "#121212"
 
-         
+  android_12:
+    image: assets/heart.png
+    color: "#ffffff"
+    color_dark: "#121212"
+
+  web: false
+

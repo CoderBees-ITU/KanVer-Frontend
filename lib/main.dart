@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kanver/services/auth_service.dart';
 import 'package:kanver/src/create-requestV1/createRequestV1.dart';
@@ -10,7 +11,6 @@ import 'package:kanver/src/request-details/requestDetails.dart';
 import 'package:inspector/inspector.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:kanver/src/myRequests/myRequests.dart';
-import 'package:kanver/src/widgets/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,10 +36,9 @@ Future<void> main() async {
           ),
         ),
       ),
-      initialRoute: '/splash', // Set the splash screen as the initial route
+      initialRoute: '/', // Set the splash screen as the initial route
       routes: {
         '/': (context) => MyApp(),
-        '/splash': (context) => SplashScreen(), // Splash screen route
         '/login': (context) => Login(),
         '/request-details': (context) => RequestDetails(
               bloodType: 'A+',
@@ -69,7 +68,8 @@ class MyApp extends StatelessWidget {
       if (user == null) {
         Navigator.pushNamed(context, '/login');
       } else {
-        if (ModalRoute.of(context)?.settings.name == '/') {
+        if (ModalRoute.of(context)?.settings.name == '/' &&
+            FirebaseAuth.instance.currentUser != null) {
           Navigator.pushNamed(context, '/home');
         }
         print('User is signed in!');

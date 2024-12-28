@@ -1,6 +1,8 @@
 // ignore_for_file: prefer_const_constructors
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -37,11 +39,73 @@ class _HomeState extends State<Home> {
   late bool _serviceEnabled;
   late PermissionStatus _permissionGranted;
   late LocationData _locationData;
+  User user = Auth().user!;
+  bool _emailVerificationSent = false; // Add this to the state
+  bool _mailSent = false;
+  Timer? _emailVerificationTimer;
 
   @override
   void initState() {
     super.initState();
-    _initializeLocation();
+    if (user == null) {
+      Navigator.pushNamed(context, '/login');
+    }
+
+    if (user != null && !user.emailVerified) {
+      _emailVerification();
+      _showEmailVerificationModal();
+    }else{
+      _initializeLocation();
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailVerificationTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _emailVerification() async {
+    if (_emailVerificationSent) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              "A verification email has already been sent. Please check your inbox."),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await user.sendEmailVerification();
+      setState(() {
+        _emailVerificationSent = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              "A verification email has been sent. Please check your inbox."),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to send email verification: $e")),
+      );
+    }
+
+    // Start polling for email verification status
+    _emailVerificationTimer =
+        Timer.periodic(Duration(seconds: 5), (timer) async {
+      await user.reload();
+      if (user.emailVerified) {
+        timer.cancel();
+        setState(() {});
+        Navigator.pop(context); // Close modal
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Email verified successfully!")),
+        );
+      }
+    });
   }
 
   Future<void> _initializeLocation() async {
@@ -81,9 +145,9 @@ class _HomeState extends State<Home> {
         Placemark place = placemarks[0];
         String? city = place.administrativeArea; // City name
         String? district = place.subAdministrativeArea; // District name
-
-        print("City (İl): $city");
-        print("District (İlçe): $district");
+        if(city != null && district != null){
+          AuthService().updateLocation(city: city, district: district);
+        }
       }
     } catch (e) {
       _showError("Failed to get location: $e");
@@ -147,6 +211,82 @@ class _HomeState extends State<Home> {
       } else if (index == 2) {
         Auth().signOut();
       }
+    });
+  }
+
+  void _showEmailVerificationModal() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showModalBottomSheet(
+        context: context,
+        isDismissible: false,
+        enableDrag: false,
+        builder: (BuildContext context) {
+          return WillPopScope(
+            onWillPop: () async => false,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: 16),
+                  Text(
+                    "Verify Your Email",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    "A verification email has been sent to ${user.email}. Please verify your email to continue.",
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    "This window will close automatically in 60 seconds.",
+                    textAlign: TextAlign.center,
+                  ),
+                  TweenAnimationBuilder<Duration>(
+                    duration: Duration(seconds: 60),
+                    tween:
+                        Tween(begin: Duration(seconds: 60), end: Duration.zero),
+                    onEnd: () {
+                      Navigator.pop(context);
+                    },
+                    builder:
+                        (BuildContext context, Duration value, Widget? child) {
+                      final minutes = value.inMinutes;
+                      final seconds = value.inSeconds % 60;
+                      return Text(
+                        'Time remaining: $minutes:${seconds.toString().padLeft(2, '0')}',
+                        textAlign: TextAlign.center,
+                      );
+                    },
+                  ),
+                  SizedBox(height: 1),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _emailVerification();
+                    },
+                    child: Text("Resend Verification Email"),
+                  ),
+                  SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () {
+                      user.reload().then((_) {
+                        print("Email Verified: ${user.emailVerified}");
+                        if (user.emailVerified) {
+                          _emailVerificationTimer?.cancel();
+                          Navigator.pop(context);
+                          _initializeLocation();
+                        }
+                      });
+                    },
+                    child: Text("I've Verified My Email"),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
     });
   }
 

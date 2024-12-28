@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 
 class AuthService {
   // Base URL for the backend
-  final String _baseUrl = "http://161.9.76.106:8080";
+  final String _baseUrl = "http://161.9.124.1:8080";
 
   // Login function
   Future<Map<String, dynamic>> login(String tc, String password) async {
@@ -45,7 +45,7 @@ class AuthService {
     final url = Uri.parse("$_baseUrl/register");
 
     try {
-      // Make the POST request
+      print("Registering user: $name");
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -59,6 +59,7 @@ class AuthService {
           'email': email,
         }),
       );
+      print(response.body);
 
       // Check the status code
       if (response.statusCode == 200) {
@@ -88,7 +89,7 @@ class AuthService {
 
     try {
       // Replace this with a valid Firebase App Check token
-      final appCheckToken = await _getAppCheckToken();
+      final appCheckToken = "REPLACE_WITH_APP_CHECK_TOKEN";
 
       // Send POST request to backend
       print(token);
@@ -115,11 +116,34 @@ class AuthService {
     }
   }
 
-  // Utility to retrieve Firebase App Check token
-  Future<String> _getAppCheckToken() async {
-    // Logic to retrieve Firebase App Check token (e.g., using Firebase App Check SDK)
-    // Replace with your actual implementation
-    return "your-app-check-token"; // Placeholder
+  Future<Map<String, dynamic>> updateLocation({
+    required String city,
+    required String district,
+  }) async {
+    String uid = FirebaseAuth.instance.currentUser!.uid;
+    final url = Uri.parse("$_baseUrl/user/$uid");
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'city': city,
+          'district': district,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'message': 'Location updated successfully'};
+      } else {
+        throw Exception(
+          "Location could not be updated: ${response.statusCode} - ${response.body}",
+        );
+      }
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
   }
 }
 
@@ -170,13 +194,12 @@ class Auth {
 
   Future<void> signInWithEmailAndPassword(
       {required String email, required String password}) async {
-    try{
-    await _firebaseAuth.signInWithEmailAndPassword(
-        email: email, password: password);
-    } catch(e){
+    try {
+      await _firebaseAuth.signInWithEmailAndPassword(
+          email: email, password: password);
+    } catch (e) {
       throw e;
     }
-        
   }
 
   Future<void> createUserWithEmailAndPassword(
@@ -188,7 +211,6 @@ class Auth {
     });
   }
 }
-
 
 class APIKey {
   final MapsApiKey = "AIzaSyCd0gng2M6iGEyod8rLJZJKFO_BgLcoy6k";
