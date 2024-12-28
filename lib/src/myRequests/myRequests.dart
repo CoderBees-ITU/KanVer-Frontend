@@ -64,7 +64,7 @@ class _IsteklerimState extends State<MyRequests> {
       } else if (index == 1) {
         Navigator.pushNamed(context, '/');
       } else if (index == 2) {
-        Auth().signOut();
+        // Auth().signOut();
       }
     });
   }

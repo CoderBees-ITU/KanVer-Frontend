@@ -317,7 +317,7 @@ class _HomeState extends State<Home> {
           Navigator.pushNamed(context, '/my-requests');
           break;
         case 2:
-          Auth().signOut();
+          // Auth().signOut();
           break;
       }
     });
