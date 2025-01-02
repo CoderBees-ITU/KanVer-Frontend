@@ -13,6 +13,7 @@ class _CitySelectionModalState extends State<CitySelectionModal> {
   List<dynamic> districts = [];
   String? selectedCity;
   String? selectedDistrict;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -59,11 +60,11 @@ class _CitySelectionModalState extends State<CitySelectionModal> {
           DropdownButtonFormField<String>(
             value: selectedCity,
             items: cities
-                .map((city) => DropdownMenuItem<String>(
-                      value: city['il_adi'],
-                      child: Text(city['il_adi']),
-                    ))
-                .toList(),
+          .map((city) => DropdownMenuItem<String>(
+                value: city['il_adi'],
+                child: Text(city['il_adi']),
+              ))
+          .toList(),
             onChanged: onCitySelected,
             decoration: InputDecoration(
               labelText: "Şehir",
@@ -74,11 +75,11 @@ class _CitySelectionModalState extends State<CitySelectionModal> {
           DropdownButtonFormField<String>(
             value: selectedDistrict,
             items: districts
-                .map((district) => DropdownMenuItem<String>(
-                      value: district['ilce_adi'],
-                      child: Text(district['ilce_adi']),
-                    ))
-                .toList(),
+          .map((district) => DropdownMenuItem<String>(
+                value: district['ilce_adi'],
+                child: Text(district['ilce_adi']),
+              ))
+          .toList(),
             onChanged: onDistrictSelected,
             decoration: InputDecoration(
               labelText: "İlçe",
@@ -87,26 +88,49 @@ class _CitySelectionModalState extends State<CitySelectionModal> {
           ),
           SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () {
+            onPressed: isLoading
+          ? null
+          : () async {
               if (selectedCity != null && selectedDistrict != null) {
-                print("Selected City: $selectedCity, District: $selectedDistrict");
-                AuthService().updateLocation(
-                  city: selectedCity!,
-                  district: selectedDistrict!,
-                );
-                Navigator.pop(context, {
-                  'city': selectedCity,
-                  'district': selectedDistrict,
+                setState(() {
+            isLoading = true;
+                });
+                print(
+              "Selected City: $selectedCity, District: $selectedDistrict");
+                await AuthService()
+              .updateLocation(
+            city: selectedCity!,
+            district: selectedDistrict!,
+                )
+              .then((_) {
+            Navigator.pop(context, {
+              'city': selectedCity,
+              'district': selectedDistrict,
+            });
+                }).catchError((error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Failed to update location"),
+              ),
+            );
+                }).whenComplete(() {
+            setState(() {
+              isLoading = false;
+            });
                 });
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Please select both city and district"),
-                  ),
+            SnackBar(
+              content: Text("Please select both city and district"),
+            ),
                 );
               }
             },
-            child: Text("Tamam"),
+            child: isLoading
+          ? CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            )
+          : Text("Tamam"),
           ),
         ],
       ),

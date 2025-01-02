@@ -21,7 +21,6 @@ class BloodRequestService {
   }) async {
     final url = Uri.parse("$_baseUrl/request");
 
-    print(hospital);
     final body = {
       'patient_tc_id': patientTcId == "" ? null : patientTcId,
       'blood_type': bloodType == "" ? null : bloodType,
@@ -50,7 +49,6 @@ class BloodRequestService {
         },
         body: jsonEncode(body),
       );
-      print(response.body);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -95,7 +93,6 @@ class BloodRequestService {
           'Authorization': Auth().user!.uid
         },
       );
-      print(response.body);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return {'success': true, 'data': data};
@@ -122,7 +119,6 @@ class BloodRequestService {
           'request_id': requestId,
         }),
       );
-      print(response.body);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return {'success': true, 'data': data};
