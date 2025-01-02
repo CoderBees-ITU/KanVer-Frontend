@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:kanver/services/auth_service.dart';
 
 class BloodRequestService {
-  final String _baseUrl = "http://192.168.1.174:8080";
+  final String _baseUrl = "https://kanver-backend-93774604105.us-central1.run.app";
 
   Future<Map<String, dynamic>> createBloodRequest({
     required int requestedTcId,
@@ -88,7 +88,7 @@ class BloodRequestService {
       query += "blood_type=$bloodType&";
     }
 
-    final url = Uri.parse("$_baseUrl/request/personalized");
+    final url = Uri.parse("$_baseUrl/request/personalized$query");
     try {
       final response = await http.get(
         url,
@@ -97,7 +97,7 @@ class BloodRequestService {
           'Authorization': Auth().user!.uid
         },
       );
-      // print(response.body);
+      print(response.body);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return {'success': true, 'data': data};

@@ -5,7 +5,8 @@ import 'package:http/http.dart' as http;
 
 class AuthService {
   // Base URL for the backend
-  final String _baseUrl = "http://192.168.1.174:8080";
+
+  final String _baseUrl = "https://kanver-backend-93774604105.us-central1.run.app";
 
   // Login function
   Future<Map<String, dynamic>> login(String tc, String password) async {

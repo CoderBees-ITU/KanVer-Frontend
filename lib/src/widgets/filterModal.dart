@@ -6,6 +6,9 @@ class FilterModal extends StatefulWidget {
   final Function(String?)? onBloodTypeSelected;
   final Function(String?)? onCitySelected;
   final Function(String?)? onDistrictSelected;
+  final String selectedCity;
+  final String selectedDistrict;
+  final String selectedBloodType;
   final Function()? getBloodRequests;
 
   const FilterModal({
@@ -13,6 +16,9 @@ class FilterModal extends StatefulWidget {
     this.onBloodTypeSelected,
     this.onCitySelected,
     this.onDistrictSelected,
+    required this.selectedCity,
+    required this.selectedDistrict,
+    required this.selectedBloodType,
     this.getBloodRequests,
   }) : super(key: key);
 
@@ -32,7 +38,11 @@ class _FilterModalState extends State<FilterModal> {
   @override
   void initState() {
     super.initState();
+    _selectedCity = widget.selectedCity;
+    _selectedDistrict = widget.selectedDistrict;
+    _selectedBloodType = widget.selectedBloodType;
     _loadCities();
+    if (_selectedCity != "Tümü") _loadDistricts(widget.selectedCity);
   }
 
   Future<void> _loadCities() async {
@@ -48,6 +58,31 @@ class _FilterModalState extends State<FilterModal> {
       });
     } catch (e) {
       debugPrint('Error loading cities: $e');
+    }
+  }
+
+  Future<void> _loadDistricts(String cityName) async {
+    print(cityName);
+    try {
+      final String response =
+          await rootBundle.loadString('assets/il-ilce.json');
+      final data = json.decode(response);
+      final cityData = _cities.firstWhere(
+        (city) => city['il_adi'] == cityName,
+        orElse: () => null,
+      );
+
+      if (cityData != null) {
+        setState(() {
+          _districts = [
+            {"ilce_adi": "Tümü"},
+            ...cityData['ilceler']
+          ];
+          _selectedDistrict = "Tümü";
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading districts: $e');
     }
   }
 
@@ -197,7 +232,7 @@ class _FilterModalState extends State<FilterModal> {
                 SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () {
-                    widget.getBloodRequests?.call();
+                    // widget.getBloodRequests?.call();
                     Navigator.pop(context);
                   },
                   child: Text('Uygula'),

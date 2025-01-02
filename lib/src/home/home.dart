@@ -1,22 +1,18 @@
-// ignore_for_file: prefer_const_constructors
+// home.dart
 import 'dart:async';
-import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:kanver/services/auth_service.dart';
-import 'package:kanver/services/request_service.dart';
 import 'package:kanver/src/create-requestV1/createRequestV1.dart';
 import 'package:kanver/src/request-details/requestDetails.dart';
-import 'package:kanver/src/widgets/CitySelectModal.dart';
 import 'package:kanver/src/widgets/filterModal.dart';
 import 'package:location/location.dart' as loc;
-import 'package:geocoding/geocoding.dart';
 import 'package:location/location.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:kanver/services/auth_service.dart';
+import 'package:kanver/services/request_service.dart';
 import 'package:kanver/src/myRequests/myRequests.dart';
-import 'package:intl/intl.dart';
+import 'package:kanver/src/widgets/CitySelectModal.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -54,6 +50,7 @@ class _HomeState extends State<Home> {
 
   void _initializeUser() {
     user = Auth().user!;
+    user.reload();
     if (user.email == null) {
       Navigator.pushReplacementNamed(context, '/login');
       return;
@@ -74,20 +71,16 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> _initializeRequests() async {
-    print("Fetching blood requests");
     _fetchRequestsFuture = fetchBloodRequests();
   }
 
   Future<List<Map<String, dynamic>>> fetchBloodRequests() async {
     try {
-      print('$_selectedBloodType, $_selectedCity, $_selectedDistrict');
       final data = await BloodRequestService().getBloodRequests(
         bloodType: _selectedBloodType,
         city: _selectedCity,
         district: _selectedDistrict,
       );
-
-      print(data);
 
       if (data['success'] != true) {
         _showError(data['message']);
@@ -96,7 +89,7 @@ class _HomeState extends State<Home> {
 
       return List<Map<String, dynamic>>.from(data['data'].map((request) {
         return {
-          'title': "${request['Patient_Name']} için kan aranıyor",
+          'title': "${request['patient_name']} için kan aranıyor",
           'age': request['Age'] ?? 0,
           'blood': request['Blood_Type'] ?? 'N/A',
           'amount': request['Donor_Count'] ?? 0,
@@ -129,7 +122,6 @@ class _HomeState extends State<Home> {
       setState(() {
         _emailVerificationSent = true;
       });
-
       _startEmailVerificationTimer();
     } catch (e) {
       _showError("E-posta doğrulama gönderilemedi: $e");
@@ -168,7 +160,6 @@ class _HomeState extends State<Home> {
         _permissionGranted = await _location.requestPermission();
         final userData = await AuthService().getUserData();
         final user = userData['data'];
-
         if (_permissionGranted != PermissionStatus.granted &&
             user['City'] == null) {
           _showCitySelectionModal();
@@ -179,102 +170,8 @@ class _HomeState extends State<Home> {
       _locationData = await _location.getLocation();
       await _updateLocationData();
     } catch (e) {
-      // _showError("Konum alınamadı: $e");
+      print("Konum alınamadı: $e");
     }
-  }
-
-  void _showCitySelectionModal() {
-    showModalBottomSheet(
-      context: context,
-      isDismissible: false,
-      enableDrag: false,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return CitySelectionModal();
-      },
-    ).then((result) {
-      if (result != null) {
-        print(
-            "Selected City: ${result['city']}, District: ${result['district']}");
-      }
-    });
-  }
-
-  void _showEmailVerificationModal() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      showModalBottomSheet(
-        context: context,
-        isDismissible: false,
-        enableDrag: false,
-        builder: (BuildContext context) {
-          return WillPopScope(
-            onWillPop: () async => false,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(height: 16),
-                  Text(
-                    "Verify Your Email",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "A verification email has been sent to ${user.email}. Please verify your email to continue.",
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "This window will close automatically in 60 seconds.",
-                    textAlign: TextAlign.center,
-                  ),
-                  TweenAnimationBuilder<Duration>(
-                    duration: Duration(seconds: 60),
-                    tween:
-                        Tween(begin: Duration(seconds: 60), end: Duration.zero),
-                    onEnd: () {
-                      Navigator.pop(context);
-                    },
-                    builder:
-                        (BuildContext context, Duration value, Widget? child) {
-                      final minutes = value.inMinutes;
-                      final seconds = value.inSeconds % 60;
-                      return Text(
-                        'Time remaining: $minutes:${seconds.toString().padLeft(2, '0')}',
-                        textAlign: TextAlign.center,
-                      );
-                    },
-                  ),
-                  SizedBox(height: 1),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await _emailVerification();
-                    },
-                    child: Text("Resend Verification Email"),
-                  ),
-                  SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {
-                      user.reload().then((_) {
-                        if (user.emailVerified) {
-                          _emailVerificationTimer?.cancel();
-                          Navigator.pop(context);
-                          _initializeLocation();
-                        }
-                      });
-                    },
-                    child: Text("Mail Adresimi Doğruladım"),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    });
   }
 
   Future<void> _updateLocationData() async {
@@ -298,6 +195,65 @@ class _HomeState extends State<Home> {
     }
   }
 
+  void _showCitySelectionModal() {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return CitySelectionModal();
+      },
+    );
+  }
+
+  void _showEmailVerificationModal() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showModalBottomSheet(
+        context: context,
+        isDismissible: false,
+        enableDrag: false,
+        builder: (BuildContext context) {
+          return WillPopScope(
+            onWillPop: () async => false,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: 16),
+                  Text(
+                    "E-posta Adresinizi Doğrulayın",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    "E-posta adresinizi doğrulamak için size bir doğrulama e-postası gönderdik. Lütfen gelen kutunuzu kontrol edin.",
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: _emailVerification,
+                    child: Text("Doğrulama E-postası Tekrar Gönder"),
+                  ),
+                  SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text("Mail Adresimi Doğruladım"),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    });
+  }
+
   void _showSuccess(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: Colors.green),
@@ -305,26 +261,223 @@ class _HomeState extends State<Home> {
   }
 
   void _showError(String message) {
+    print("Error: $message");
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 
-  void _onItemTapped(int index) {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _buildBody(),
+      bottomNavigationBar: CustomBottomNavigation(
+        selectedIndex: _selectedIndex,
+        onItemTapped: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    switch (_selectedIndex) {
+      case 0:
+        return HomeContent(
+          selectedBloodType: _selectedBloodType,
+          selectedCity: _selectedCity,
+          selectedDistrict: _selectedDistrict,
+          fetchRequestsFuture: _fetchRequestsFuture,
+          onInitializeRequests: fetchBloodRequests,
+          onBloodTypeSelected: (String? bloodType) {
+            setState(() {
+              _selectedBloodType = bloodType ?? 'Tümü';
+            });
+          },
+          onCitySelected: (String? city) {
+            setState(() {
+              _selectedCity = city ?? 'Tümü';
+            });
+          },
+          onDistrictSelected: (String? district) {
+            setState(() {
+              _selectedDistrict = district ?? 'Tümü';
+            });
+          },
+        );
+      case 1:
+        return MyRequests();
+      case 2:
+        return const ProfileScreen();
+      default:
+        return HomeContent(
+          selectedBloodType: _selectedBloodType,
+          selectedCity: _selectedCity,
+          selectedDistrict: _selectedDistrict,
+          fetchRequestsFuture: _fetchRequestsFuture,
+          onInitializeRequests: _initializeRequests,
+          onBloodTypeSelected: (String? bloodType) {
+            setState(() {
+              _selectedBloodType = bloodType ?? 'Tümü';
+            });
+          },
+          onCitySelected: (String? city) {
+            setState(() {
+              _selectedCity = city ?? 'Tümü';
+            });
+          },
+          onDistrictSelected: (String? district) {
+            setState(() {
+              _selectedDistrict = district ?? 'Tümü';
+            });
+          },
+        );
+    }
+  }
+}
+
+// profile_screen.dart
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Profilim'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => Auth().signOut(),
+          ),
+        ],
+      ),
+      body: const Center(
+        child: Text('Profil Sayfası'),
+      ),
+    );
+  }
+}
+
+// custom_bottom_navigation.dart
+class CustomBottomNavigation extends StatelessWidget {
+  final int selectedIndex;
+  final Function(int) onItemTapped;
+
+  const CustomBottomNavigation({
+    Key? key,
+    required this.selectedIndex,
+    required this.onItemTapped,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomNavigationBar(
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: "Ana Sayfa",
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.list),
+          label: "İsteklerim",
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: "Profilim",
+        ),
+      ],
+      currentIndex: selectedIndex,
+      onTap: onItemTapped,
+      selectedItemColor: const Color(0xff65558F),
+      unselectedItemColor: Colors.grey,
+    );
+  }
+}
+
+// home_content.dart
+class HomeContent extends StatefulWidget {
+  final String selectedBloodType;
+  final String selectedCity;
+  final String selectedDistrict;
+  final Future<List<Map<String, dynamic>>> fetchRequestsFuture;
+  final Function() onInitializeRequests;
+  final Function(String?) onBloodTypeSelected;
+  final Function(String?) onCitySelected;
+  final Function(String?) onDistrictSelected;
+
+  const HomeContent({
+    Key? key,
+    required this.selectedBloodType,
+    required this.selectedCity,
+    required this.selectedDistrict,
+    required this.fetchRequestsFuture,
+    required this.onInitializeRequests,
+    required this.onBloodTypeSelected,
+    required this.onCitySelected,
+    required this.onDistrictSelected,
+  }) : super(key: key);
+
+  @override
+  State<HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<HomeContent> {
+  bool _isInitialLoading = true;
+  List<Map<String, dynamic>>? _requests;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRequests(); // First load => show full-screen spinner
+  }
+
+  /// Separate initial loading from refresh loading
+  Future<void> _loadRequests() async {
+    if (!mounted) return;
+
     setState(() {
-      _selectedIndex = index;
-      switch (index) {
-        case 0:
-          Navigator.pushReplacementNamed(context, '/');
-          break;
-        case 1:
-          Navigator.pushNamed(context, '/my-requests');
-          break;
-        case 2:
-          Auth().signOut();
-          break;
-      }
+      // Always set true so entire screen is blocked
+      _isInitialLoading = true;
     });
+
+    try {
+      // optional: call initialize / fetch
+      await widget.onInitializeRequests();
+      final requests = await widget.onInitializeRequests();
+      print(requests);
+
+      if (!mounted) return;
+      setState(() {
+        _requests = requests;
+        _isInitialLoading = false; // turn off loading after data arrives
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _requests ??= [];
+        _isInitialLoading = false; // turn off loading even if error
+      });
+    }
+  }
+
+  Future<void> _refreshRequests() async {
+    // This still calls the same method
+    return _loadRequests();
+  }
+
+  @override
+  void didUpdateWidget(HomeContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.selectedBloodType != widget.selectedBloodType ||
+        oldWidget.selectedCity != widget.selectedCity ||
+        oldWidget.selectedDistrict != widget.selectedDistrict) {
+      // Reload after filter changes, with full-screen spinner again
+      _loadRequests();
+    }
   }
 
   @override
@@ -334,23 +487,70 @@ class _HomeState extends State<Home> {
         automaticallyImplyLeading: false,
         title: const Text('İstekler'),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          _buildFilterButton(),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: _buildRequestsList(),
-            ),
+          // Your normal content below
+          Column(
+            children: [
+              _buildFilterButton(context),
+              Expanded(
+                // If you still want to use RefreshIndicator, that’s fine.
+                child: RefreshIndicator(
+                  onRefresh: _refreshRequests,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: _buildRequestsList(),
+                  ),
+                ),
+              ),
+            ],
           ),
+
+          // Full-screen overlay when loading
+          if (_isInitialLoading)
+            Container(
+              width: double.infinity,
+              height: double.infinity,
+              color: Colors.white.withOpacity(0.8),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
         ],
       ),
-      floatingActionButton: _buildFloatingActionButton(),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      floatingActionButton: _buildFloatingActionButton(context),
     );
   }
 
-  Widget _buildFilterButton() {
+  Widget _buildRequestsList() {
+    if (_requests == null || _requests!.isEmpty) {
+      return const Center(child: Text("Kan isteği bulunmamaktadır."));
+    }
+
+    // Stack so we can overlay a top linear progress indicator when refreshing
+    return Stack(
+      children: [
+        ListView.builder(
+          itemCount: _requests!.length,
+          itemBuilder: (context, index) {
+            return _buildRequestCard(context, _requests![index]);
+          },
+        ),
+
+        // if (_isInitialLoading) // Show a linear progress indicator at the top
+        //   const Positioned(
+        //     top: 0,
+        //     left: 0,
+        //     right: 0,
+        //     child: LinearProgressIndicator(),
+        //   ),
+      ],
+    );
+  }
+
+  // … Rest of your existing build methods (no major changes needed) …
+
+  Widget _buildFilterButton(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: ElevatedButton(
@@ -362,8 +562,28 @@ class _HomeState extends State<Home> {
             borderRadius: BorderRadius.circular(18.0),
           ),
         ),
-        onPressed: _showFilterModal,
+        onPressed: () => _showFilterModal(context),
         child: _buildFilterButtonContent(),
+      ),
+    );
+  }
+
+  Widget _buildFloatingActionButton1(BuildContext context) {
+    return Align(
+      alignment: Alignment.bottomRight,
+      child: ElevatedButton(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CreateRequestV1()),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF6B548D),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(43),
+          ),
+          minimumSize: const Size(43, 43),
+        ),
+        child: const Icon(Icons.add, size: 24, color: Colors.white),
       ),
     );
   }
@@ -407,32 +627,32 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _buildRequestsList() {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: _fetchRequestsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+  // Widget _buildRequestsList() {
+  //   return FutureBuilder<List<Map<String, dynamic>>>(
+  //     future: widget.fetchRequestsFuture,
+  //     builder: (context, snapshot) {
+  //       if (snapshot.connectionState == ConnectionState.waiting) {
+  //         return const Center(child: CircularProgressIndicator());
+  //       }
 
-        if (snapshot.hasError) {
-          return Center(child: Text("Hata: ${snapshot.error}"));
-        }
+  //       if (snapshot.hasError) {
+  //         return Center(child: Text("Hata: ${snapshot.error}"));
+  //       }
 
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text("Kan isteği bulunmamaktadır."));
-        }
+  //       if (!snapshot.hasData || snapshot.data!.isEmpty) {
+  //         return const Center(child: Text("Kan isteği bulunmamaktadır."));
+  //       }
 
-        return ListView.builder(
-          itemCount: snapshot.data!.length,
-          itemBuilder: (context, index) =>
-              _buildRequestCard(snapshot.data![index]),
-        );
-      },
-    );
-  }
+  //       return ListView.builder(
+  //         itemCount: snapshot.data!.length,
+  //         itemBuilder: (context, index) =>
+  //             _buildRequestCard(context, snapshot.data![index]),
+  //       );
+  //     },
+  //   );
+  // }
 
-  Widget _buildRequestCard(Map<String, dynamic> request) {
+  Widget _buildRequestCard(BuildContext context, Map<String, dynamic> request) {
     return _CustomCard(
       title: request['title'],
       age: request['age'],
@@ -449,7 +669,7 @@ class _HomeState extends State<Home> {
           context,
           MaterialPageRoute(
             builder: (context) => RequestDetails(
-              request_id: request['Request_ID'],
+              request_id: request['request']['Request_ID'].toString(),
               bloodType: request['blood'],
               donorAmount: request['amount'].toString(),
               patientAge: request['age'],
@@ -469,7 +689,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _buildFloatingActionButton() {
+  Widget _buildFloatingActionButton(BuildContext context) {
     return Align(
       alignment: Alignment.bottomRight,
       child: ElevatedButton(
@@ -489,30 +709,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _buildBottomNavigationBar() {
-    return BottomNavigationBar(
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: "Ana Sayfa",
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.list),
-          label: "İsteklerim",
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
-          label: "Profilim",
-        ),
-      ],
-      currentIndex: _selectedIndex,
-      onTap: _onItemTapped,
-      selectedItemColor: const Color(0xff65558F),
-      unselectedItemColor: Colors.grey,
-    );
-  }
-
-  void _showFilterModal() {
+  void _showFilterModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -520,27 +717,19 @@ class _HomeState extends State<Home> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) => FilterModal(
-        onBloodTypeSelected: (String? bloodType) {
-          setState(() {
-            _selectedBloodType = bloodType ?? 'Tümü';
-          });
-        },
-        onCitySelected: (String? city) {
-          setState(() {
-            _selectedCity = city ?? 'Tümü';
-          });
-        },
-        onDistrictSelected: (String? district) {
-          setState(() {
-            _selectedDistrict = district ?? 'Tümü';
-          });
-        },
-        getBloodRequests: () => _initializeRequests(),
+        onBloodTypeSelected: widget.onBloodTypeSelected,
+        onCitySelected: widget.onCitySelected,
+        onDistrictSelected: widget.onDistrictSelected,
+        selectedCity: widget.selectedCity,
+        selectedDistrict: widget.selectedDistrict,
+        selectedBloodType: widget.selectedBloodType,
+        getBloodRequests: widget.onInitializeRequests,
       ),
     );
   }
 }
 
+// custom_card.dart
 class _CustomCard extends StatelessWidget {
   final String title;
   final int age;
@@ -572,26 +761,7 @@ class _CustomCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RequestDetails(
-              bloodType: blood,
-              request_id: request['Request_ID'].toString(),
-              donorAmount: amount.toString(),
-              patientAge: age,
-              hospitalName: request['Hospital'],
-              additionalInfo: request['Note'],
-              hospitalLocation: LatLng(
-                double.tryParse(request['Lat']?.toString() ?? '0') ?? 0.0,
-                double.tryParse(request['Lng']?.toString() ?? '0') ?? 0.0,
-              ),
-              type: 'bloodRequest',
-            ),
-          ),
-        );
-      },
+      onTap: onArrowPressed,
       child: Card(
         elevation: 4,
         shape: RoundedRectangleBorder(
@@ -612,13 +782,17 @@ class _CustomCard extends StatelessWidget {
       ),
     );
   }
-  // Previous code remains the same until _CustomCard class's _buildCardHeader
 
   Widget _buildCardHeader() {
     return Row(
       children: [
         Expanded(
-          child: Text(progress.toString()),
+          child: LinearProgressIndicator(
+            value: double.tryParse("0.4") ?? 0.0,
+            backgroundColor: Color(0xffE8DEF8),
+            valueColor: AlwaysStoppedAnimation<Color>(
+                Color(0xff65558F)), // Custom progress color
+          ),
         ),
         IconButton(
           icon: const Icon(
@@ -732,43 +906,5 @@ class _CustomCard extends StatelessWidget {
     } else {
       return 'Az önce';
     }
-  }
-}
-
-class BloodRequest {
-  final String title;
-  final int age;
-  final String blood;
-  final int amount;
-  final String time;
-  final double progress;
-  final String cityy;
-  final String districtt;
-  final Map<String, dynamic> request;
-
-  const BloodRequest({
-    required this.title,
-    required this.age,
-    required this.blood,
-    required this.amount,
-    required this.time,
-    required this.progress,
-    required this.cityy,
-    required this.districtt,
-    required this.request,
-  });
-
-  factory BloodRequest.fromJson(Map<String, dynamic> json) {
-    return BloodRequest(
-      title: "${json['Patient_Name']} için kan aranıyor",
-      age: json['Age'] ?? 0,
-      blood: json['Blood_Type'] ?? 'N/A',
-      amount: json['Donor_Count'] ?? 0,
-      time: json['Create_Time'] ?? '',
-      progress: json['Status'] ?? 0.0,
-      cityy: json['City'] ?? 'N/A',
-      districtt: json['District'] ?? 'N/A',
-      request: json,
-    );
   }
 }
