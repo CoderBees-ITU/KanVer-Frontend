@@ -62,7 +62,6 @@ class AuthService {
           'email': email,
         }),
       );
-      print(response.body);
 
       // Check the status code
       if (response.statusCode == 200) {
@@ -138,7 +137,6 @@ class AuthService {
           'district': district,
         }),
       );
-      print(response.body);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -162,6 +160,7 @@ class AuthService {
         url,
         headers: {'Content-Type': 'application/json'},
       );
+      print(response);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

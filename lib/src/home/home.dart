@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kanver/src/create-requestV1/createRequestV1.dart';
+import 'package:kanver/src/my-profile/profile.dart';
 import 'package:kanver/src/request-details/requestDetails.dart';
 import 'package:kanver/src/widgets/filterModal.dart';
 import 'package:location/location.dart' as loc;
@@ -310,7 +311,7 @@ class _HomeState extends State<Home> {
       case 1:
         return MyRequests();
       case 2:
-        return const ProfileScreen();
+        return ProfileScreen();
       default:
         return HomeContent(
           selectedBloodType: _selectedBloodType,
@@ -339,27 +340,7 @@ class _HomeState extends State<Home> {
 }
 
 // profile_screen.dart
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profilim'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => Auth().signOut(),
-          ),
-        ],
-      ),
-      body: const Center(
-        child: Text('Profil Sayfası'),
-      ),
-    );
-  }
-}
 
 // custom_bottom_navigation.dart
 class CustomBottomNavigation extends StatelessWidget {
@@ -447,7 +428,6 @@ class _HomeContentState extends State<HomeContent> {
       // optional: call initialize / fetch
       await widget.onInitializeRequests();
       final requests = await widget.onInitializeRequests();
-      print(requests);
 
       if (!mounted) return;
       setState(() {
