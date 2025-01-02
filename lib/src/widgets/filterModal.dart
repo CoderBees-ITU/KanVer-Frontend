@@ -6,12 +6,20 @@ class FilterModal extends StatefulWidget {
   final Function(String?)? onBloodTypeSelected;
   final Function(String?)? onCitySelected;
   final Function(String?)? onDistrictSelected;
+  final String selectedCity;
+  final String selectedDistrict;
+  final String selectedBloodType;
+  final Function()? getBloodRequests;
 
   const FilterModal({
     Key? key,
     this.onBloodTypeSelected,
     this.onCitySelected,
     this.onDistrictSelected,
+    required this.selectedCity,
+    required this.selectedDistrict,
+    required this.selectedBloodType,
+    this.getBloodRequests,
   }) : super(key: key);
 
   @override
@@ -30,7 +38,11 @@ class _FilterModalState extends State<FilterModal> {
   @override
   void initState() {
     super.initState();
+    _selectedCity = widget.selectedCity;
+    _selectedDistrict = widget.selectedDistrict;
+    _selectedBloodType = widget.selectedBloodType;
     _loadCities();
+    if (_selectedCity != "Tümü") _loadDistricts(widget.selectedCity);
   }
 
   Future<void> _loadCities() async {
@@ -46,6 +58,31 @@ class _FilterModalState extends State<FilterModal> {
       });
     } catch (e) {
       debugPrint('Error loading cities: $e');
+    }
+  }
+
+  Future<void> _loadDistricts(String cityName) async {
+    print(cityName);
+    try {
+      final String response =
+          await rootBundle.loadString('assets/il-ilce.json');
+      final data = json.decode(response);
+      final cityData = _cities.firstWhere(
+        (city) => city['il_adi'] == cityName,
+        orElse: () => null,
+      );
+
+      if (cityData != null) {
+        setState(() {
+          _districts = [
+            {"ilce_adi": "Tümü"},
+            ...cityData['ilceler']
+          ];
+          _selectedDistrict = "Tümü";
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading districts: $e');
     }
   }
 
@@ -92,8 +129,8 @@ class _FilterModalState extends State<FilterModal> {
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
                 labelText: 'Kan Grubu',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0)),
               ),
               value: _selectedBloodType,
               isExpanded: true, // Prevents overflow by allowing text to wrap
@@ -195,11 +232,8 @@ class _FilterModalState extends State<FilterModal> {
                 SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context, {
-                      'bloodType': _selectedBloodType,
-                      'city': _selectedCity,
-                      'district': _selectedDistrict,
-                    });
+                    // widget.getBloodRequests?.call();
+                    Navigator.pop(context);
                   },
                   child: Text('Uygula'),
                 ),

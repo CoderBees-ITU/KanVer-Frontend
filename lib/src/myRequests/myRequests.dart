@@ -46,15 +46,12 @@ class _IsteklerimState extends State<MyRequests> {
     super.initState();
   }
 
-
-
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
   }
 
- 
   // Navigation logic
   void _onItemTapped(int index) {
     setState(() {
@@ -153,6 +150,7 @@ class _IsteklerimState extends State<MyRequests> {
               return _CustomCard(
                 title: request.title,
                 age: request.age,
+                requestId: request.request_id,
                 blood: request.blood,
                 amount: request.amount,
                 time: request.time,
@@ -166,6 +164,7 @@ class _IsteklerimState extends State<MyRequests> {
                     MaterialPageRoute(
                       builder: (context) => RequestDetails(
                         bloodType: request.blood,
+                        request_id: request.request_id,
                         donorAmount: request.amount.toString(),
                         patientAge: request.age,
                         hospitalName: 'Hastane Adı',
@@ -216,6 +215,7 @@ class _IsteklerimState extends State<MyRequests> {
               return _CustomCard(
                 title: request.title,
                 age: request.age,
+                requestId: request.request_id,
                 blood: request.blood,
                 amount: request.amount,
                 time: request.time,
@@ -229,6 +229,7 @@ class _IsteklerimState extends State<MyRequests> {
                     MaterialPageRoute(
                       builder: (context) => RequestDetails(
                         bloodType: request.blood,
+                        request_id: request.request_id,
                         donorAmount: request.amount.toString(),
                         patientAge: request.age,
                         hospitalName: 'Hastane Adı',
@@ -258,6 +259,7 @@ class _IsteklerimState extends State<MyRequests> {
         age: 23,
         blood: '0+',
         amount: 2,
+        request_id: '1',
         time: '2 saat önce',
         progress: 0.5,
         cityy: 'İstanbul',
@@ -269,6 +271,7 @@ class _IsteklerimState extends State<MyRequests> {
         age: 35,
         blood: 'A+',
         amount: 2,
+        request_id: '2',
         time: '2 saat önce',
         progress: 0.75,
         cityy: 'İstanbul',
@@ -280,6 +283,7 @@ class _IsteklerimState extends State<MyRequests> {
         age: 23,
         blood: 'B+',
         amount: 2,
+        request_id: '3',
         time: '2 saat önce',
         progress: 0.25,
         cityy: 'İstanbul',
@@ -291,6 +295,7 @@ class _IsteklerimState extends State<MyRequests> {
         age: 16,
         blood: '0+',
         amount: 2,
+        request_id: '4',
         time: '2 saat önce',
         progress: 0.5,
         cityy: 'Ankara',
@@ -302,6 +307,7 @@ class _IsteklerimState extends State<MyRequests> {
         age: 27,
         blood: 'A+',
         amount: 2,
+        request_id: '5',
         time: '2 saat önce',
         progress: 0.75,
         cityy: 'Ankara',
@@ -313,6 +319,7 @@ class _IsteklerimState extends State<MyRequests> {
         age: 55,
         blood: 'B+',
         amount: 2,
+        request_id: '6',
         time: '2 saat önce',
         progress: 0.25,
         cityy: 'Ankara',
@@ -330,6 +337,7 @@ class _IsteklerimState extends State<MyRequests> {
         age: 25,
         blood: 'B+',
         amount: 2,
+        request_id: '7',
         time: '1 saat önce',
         progress: 0.8,
         cityy: 'İstanbul',
@@ -341,6 +349,7 @@ class _IsteklerimState extends State<MyRequests> {
         age: 45,
         blood: '0-',
         amount: 1,
+        request_id: '8',
         time: '3 yıl önce',
         progress: 0.6,
         cityy: 'Ankara',
@@ -358,15 +367,18 @@ class _CustomCard extends StatelessWidget {
   final int amount;
   final String time;
   final Icon icon;
+  final String requestId;
   final VoidCallback onArrowPressed;
   final double progress;
   final String cityy;
   final String districtt;
+
   final bool isClosed;
 
   const _CustomCard({
     Key? key,
     required this.title,
+    required this.requestId,
     required this.age,
     required this.blood,
     required this.amount,
@@ -553,12 +565,14 @@ class BloodRequest {
   final String cityy;
   final String districtt;
   final bool isClosed;
+  final String request_id;
 
   BloodRequest({
     required this.title,
     required this.age,
     required this.blood,
     required this.amount,
+    required this.request_id,
     required this.time,
     required this.progress,
     required this.cityy,

@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:kanver/services/auth_service.dart';
 
 class BloodRequestService {
-  final String _baseUrl = "http://161.9.124.1:8080";
+  final String _baseUrl = "https://kanver-backend-93774604105.us-central1.run.app";
 
   Future<Map<String, dynamic>> createBloodRequest({
     required int requestedTcId,
@@ -88,18 +88,48 @@ class BloodRequestService {
       query += "blood_type=$bloodType&";
     }
 
-    final url = Uri.parse("$_baseUrl/request$query");
+    final url = Uri.parse("$_baseUrl/request/personalized$query");
     try {
       final response = await http.get(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': Auth().user!.uid
+        },
       );
-
+      print(response.body);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return {'success': true, 'data': data};
       } else {
         return {'success': false, 'message': 'Failed to get requests'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> setOnTheWay({
+    required String requestId,
+  }) async {
+    final url = Uri.parse("$_baseUrl/on_the_way");
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${Auth().user!.uid}'
+        },
+        body: jsonEncode({
+          'request_id': requestId,
+        }),
+      );
+      print(response.body);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'data': data};
+      } else {
+        return {'success': false, 'message': 'Failed to get request'};
       }
     } catch (e) {
       return {'success': false, 'message': e.toString()};

@@ -20,7 +20,7 @@ class _AnimatedPressButtonState extends State<AnimatedPressButton>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 5), // Animation lasts 5 seconds
+      duration: const Duration(seconds: 3), // Animation lasts 5 seconds
     );
   }
 
@@ -65,11 +65,15 @@ class _AnimatedPressButtonState extends State<AnimatedPressButton>
           return ShaderMask(
             shaderCallback: (bounds) {
               return LinearGradient(
-                colors: const [Color.fromARGB(255, 65, 0, 162), Color.fromARGB(255, 0, 70, 127)],
+                colors: const [
+                  Color.fromARGB(255, 65, 0, 162),
+                  Color.fromARGB(255, 129, 148, 163)
+                ],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
                 stops: [
-                  _controller.value, // Dynamically change based on the animation
+                  _controller
+                      .value, // Dynamically change based on the animation
                   _controller.value + 0.1 > 1.0
                       ? 1.0
                       : _controller.value + 0.1, // Smooth gradient
@@ -79,7 +83,7 @@ class _AnimatedPressButtonState extends State<AnimatedPressButton>
             blendMode: BlendMode.srcATop,
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xff65558F),
+                backgroundColor: const Color.fromARGB(255, 104, 50, 243),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 shape: RoundedRectangleBorder(

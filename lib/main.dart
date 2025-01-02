@@ -41,6 +41,7 @@ Future<void> main() async {
         '/': (context) => MyApp(),
         '/login': (context) => Login(),
         '/request-details': (context) => RequestDetails(
+              request_id: '12345', // Add the required request_id argument
               bloodType: 'A+',
               donorAmount: "2",
               patientAge: 30,

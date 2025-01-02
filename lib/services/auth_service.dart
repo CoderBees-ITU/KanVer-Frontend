@@ -5,7 +5,8 @@ import 'package:http/http.dart' as http;
 
 class AuthService {
   // Base URL for the backend
-  final String _baseUrl = "http://161.9.124.1:8080";
+
+  final String _baseUrl = "https://kanver-backend-93774604105.us-central1.run.app";
 
   // Login function
   Future<Map<String, dynamic>> login(String tc, String password) async {
@@ -15,7 +16,9 @@ class AuthService {
       // Send POST request
       final response = await http.get(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+        },
       ).then((value) {
         final data = jsonDecode(value.body);
         Auth()
@@ -126,12 +129,16 @@ class AuthService {
     try {
       final response = await http.put(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': Auth().user!.uid
+        },
         body: jsonEncode({
           'city': city,
           'district': district,
         }),
       );
+      print(response.body);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -168,10 +175,6 @@ class AuthService {
       return {'success': false, 'message': e.toString()};
     }
   }
-
-
-
-
 }
 
 Future<Map<String, dynamic>> validateUserDetails({
