@@ -669,6 +669,8 @@ class _HomeContentState extends State<HomeContent> {
           context,
           MaterialPageRoute(
             builder: (context) => RequestDetails(
+              patient_name: request['request']['patient_name'],
+              patient_surname: request['request']['patient_surname'],
               request_id: request['request']['Request_ID'].toString(),
               bloodType: request['blood'],
               donorAmount: request['amount'].toString(),
