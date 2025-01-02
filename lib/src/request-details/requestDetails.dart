@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:kanver/services/request_service.dart';
+import 'package:kanver/src/home/home.dart';
 import 'package:kanver/src/widgets/pressButton.dart';
 import 'package:kanver/src/widgets/requestDetailCard.dart';
 
@@ -7,6 +9,7 @@ class RequestDetails extends StatelessWidget {
   final String bloodType;
   final String donorAmount;
   final int patientAge;
+  final String request_id;
   final String hospitalName;
   final String additionalInfo;
   final LatLng hospitalLocation;
@@ -18,6 +21,7 @@ class RequestDetails extends StatelessWidget {
     required this.bloodType,
     required this.donorAmount,
     required this.patientAge,
+    required this.request_id,
     required this.hospitalName,
     required this.additionalInfo,
     required this.hospitalLocation,
@@ -91,6 +95,7 @@ class RequestDetails extends StatelessWidget {
                     ),
                   ),
                 ),
+
                 SizedBox(
                   height: 250, // Set a fixed height for the map
                   child: ClipRRect(
@@ -134,15 +139,28 @@ class RequestDetails extends StatelessWidget {
                     child: AnimatedPressButton(
                       completeFunction: () {
                         // Add your function here
-                        print('Button pressed');
+                        BloodRequestService()
+                            .setOnTheWay(requestId: request_id)
+                            .then(
+                          (response) {
+                            if (response['success']) {
+                              Navigator.pop(context);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(response['message']),
+                                ),
+                              );
+                            }
+                          },
+                        );
                       },
                     ),
                   ),
                   const SizedBox(height: 8.0), // Add spacing
                   const Text(
                     "Bağış Yapmak İçin Basılı Tutun",
-                    style: TextStyle(color: Colors.black,
-                    fontSize: 12),  
+                    style: TextStyle(color: Colors.black, fontSize: 12),
                     textAlign: TextAlign.center,
                   ),
                 ],

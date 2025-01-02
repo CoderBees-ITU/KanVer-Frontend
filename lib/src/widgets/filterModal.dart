@@ -6,12 +6,14 @@ class FilterModal extends StatefulWidget {
   final Function(String?)? onBloodTypeSelected;
   final Function(String?)? onCitySelected;
   final Function(String?)? onDistrictSelected;
+  final Function()? getBloodRequests;
 
   const FilterModal({
     Key? key,
     this.onBloodTypeSelected,
     this.onCitySelected,
     this.onDistrictSelected,
+    this.getBloodRequests,
   }) : super(key: key);
 
   @override
@@ -92,8 +94,8 @@ class _FilterModalState extends State<FilterModal> {
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
                 labelText: 'Kan Grubu',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0)),
               ),
               value: _selectedBloodType,
               isExpanded: true, // Prevents overflow by allowing text to wrap
@@ -195,11 +197,8 @@ class _FilterModalState extends State<FilterModal> {
                 SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context, {
-                      'bloodType': _selectedBloodType,
-                      'city': _selectedCity,
-                      'district': _selectedDistrict,
-                    });
+                    widget.getBloodRequests?.call();
+                    Navigator.pop(context);
                   },
                   child: Text('Uygula'),
                 ),

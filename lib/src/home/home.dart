@@ -74,16 +74,20 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> _initializeRequests() async {
+    print("Fetching blood requests");
     _fetchRequestsFuture = fetchBloodRequests();
   }
 
   Future<List<Map<String, dynamic>>> fetchBloodRequests() async {
     try {
+      print('$_selectedBloodType, $_selectedCity, $_selectedDistrict');
       final data = await BloodRequestService().getBloodRequests(
         bloodType: _selectedBloodType,
         city: _selectedCity,
         district: _selectedDistrict,
       );
+
+      print(data);
 
       if (data['success'] != true) {
         _showError(data['message']);
@@ -317,7 +321,7 @@ class _HomeState extends State<Home> {
           Navigator.pushNamed(context, '/my-requests');
           break;
         case 2:
-          // Auth().signOut();
+          Auth().signOut();
           break;
       }
     });
@@ -445,6 +449,7 @@ class _HomeState extends State<Home> {
           context,
           MaterialPageRoute(
             builder: (context) => RequestDetails(
+              request_id: request['Request_ID'],
               bloodType: request['blood'],
               donorAmount: request['amount'].toString(),
               patientAge: request['age'],
@@ -530,14 +535,11 @@ class _HomeState extends State<Home> {
             _selectedDistrict = district ?? 'Tümü';
           });
         },
+        getBloodRequests: () => _initializeRequests(),
       ),
     );
   }
 }
-
-
-
-
 
 class _CustomCard extends StatelessWidget {
   final String title;
@@ -576,9 +578,10 @@ class _CustomCard extends StatelessWidget {
           MaterialPageRoute(
             builder: (context) => RequestDetails(
               bloodType: blood,
+              request_id: request['Request_ID'].toString(),
               donorAmount: amount.toString(),
               patientAge: age,
-              hospitalName:  request['Hospital'],
+              hospitalName: request['Hospital'],
               additionalInfo: request['Note'],
               hospitalLocation: LatLng(
                 double.tryParse(request['Lat']?.toString() ?? '0') ?? 0.0,
