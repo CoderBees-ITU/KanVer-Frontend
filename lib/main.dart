@@ -1,8 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:kanver/services/auth_service.dart';
 import 'package:kanver/src/create-requestV1/createRequestV1.dart';
 import 'package:kanver/src/home/home.dart';
 import 'package:kanver/src/login/login.dart';

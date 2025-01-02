@@ -31,6 +31,8 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
   String? selectedHospital;
   String? unitCount;
   String? additionalInfo;
+  String? patientName;
+  String? patientSurname;
 
   // Dropdown options
   final List<String> formTypeOptions = ['Kendim için', 'Yakınım için'];
@@ -208,28 +210,27 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
       };
 
       dynamic response = await BloodRequestService().createBloodRequest(
-        requestedTcId: 46909942744,
         patientTcId: int.tryParse(tcNumber ?? '0') ?? 0,
         bloodType: bloodGroup ?? '',
         donorCount: int.tryParse(unitCount ?? '0') ?? 0,
         patientAge: int.tryParse(age ?? '0') ?? 0,
         hospital: jsonDecode(selectedHospital!),
         note: additionalInfo ?? '',
-        gender: "Erkek",
+        gender: gender!,
         city: selectedCity!,
         district: selectedDistrict!,
-        patientName : "Ali", 
-        patientSurname : "Veli2",
+        patientName: patientName ?? '',
+        patientSurname: patientSurname ?? '',
       );
-      if(response['success']){
+      if (response['success']) {
         print("Request created successfully");
         Navigator.pop(context);
-      }else{
-        showAboutDialog(context: context, applicationName: "Error", children: [Text("Error creating request")]);
+      } else {
+        showAboutDialog(
+            context: context,
+            applicationName: "Error",
+            children: [Text("Error creating request")]);
       }
-        
-
-        
 
       // Show confirmation
       ScaffoldMessenger.of(context).showSnackBar(
@@ -379,7 +380,6 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
                     ),
                   ),
                   const SizedBox(height: 10),
-
                   // Conditionally Render Fields IF "Yakınım için"
                   if (formType == 'Yakınım için') ...[
                     const Align(
@@ -435,6 +435,98 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
+                        "Hastanın Adı:",
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 0, 0, 0),
+                          fontSize: 14,
+                          fontFamily: 'Roboto',
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Hastanın Adı...',
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
+                        labelStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: 'Inter',
+                          color: Color.fromRGBO(84, 76, 76, 1),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 15.0,
+                        ),
+                      ),
+                      onSaved: (value) => patientName = value,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Hasta adı gerekli';
+                        }
+                        return null;
+                      },
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Inter',
+                        color: Color.fromRGBO(84, 76, 76, 1),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Hastanın Soyadı:",
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 0, 0, 0),
+                          fontSize: 14,
+                          fontFamily: 'Roboto',
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Hastanın Soyadı...',
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
+                        labelStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: 'Inter',
+                          color: Color.fromRGBO(84, 76, 76, 1),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 15.0,
+                        ),
+                      ),
+                      onSaved: (value) => patientSurname = value,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Hasta soyadı gerekli';
+                        }
+                        return null;
+                      },
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Inter',
+                        color: Color.fromRGBO(84, 76, 76, 1),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
                         "Kan Grubu:",
                         style: TextStyle(
                           color: Color.fromARGB(255, 0, 0, 0),
@@ -456,6 +548,12 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
                       onChanged: (value) => setState(() {
                         bloodGroup = value;
                       }),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Kan grubu gerekli';
+                        }
+                        return null;
+                      },
                       decoration: InputDecoration(
                         labelText: 'Hastanın kan grubu...',
                         floatingLabelBehavior: FloatingLabelBehavior.never,
@@ -515,6 +613,12 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
                           horizontal: 15.0,
                         ),
                       ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Yaş gerekli';
+                        }
+                        return null;
+                      },
                       keyboardType: TextInputType.number,
                       onSaved: (value) => age = value,
                       style: const TextStyle(
@@ -525,60 +629,65 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Cinsiyet:",
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 0, 0, 0),
-                          fontSize: 14,
-                          fontFamily: 'Roboto',
-                          fontWeight: FontWeight.w400,
-                        ),
+                  ],
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Cinsiyet:",
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 0, 0, 0),
+                        fontSize: 14,
+                        fontFamily: 'Roboto',
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    DropdownButtonFormField<String>(
-                      value: gender,
-                      items: genderOptions
-                          .map((g) => DropdownMenuItem(
-                                value: g,
-                                child: Text(g),
-                              ))
-                          .toList(),
-                      onChanged: (value) => setState(() {
-                        gender = value;
-                      }),
-                      decoration: InputDecoration(
-                        labelText: 'Erkek/Kadın/Belirtmek istemiyorum',
-                        floatingLabelBehavior: FloatingLabelBehavior.never,
-                        labelStyle: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: 'Inter',
-                          color: Color.fromRGBO(84, 76, 76, 1),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 10.0,
-                          horizontal: 15.0,
-                        ),
-                      ),
-                      dropdownColor: Colors.white,
-                      menuMaxHeight: 300.0,
-                      icon: const Icon(Icons.arrow_drop_down),
-                      style: const TextStyle(
+                  ),
+                  const SizedBox(height: 2),
+                  DropdownButtonFormField<String>(
+                    value: gender,
+                    items: genderOptions
+                        .map((g) => DropdownMenuItem(
+                              value: g,
+                              child: Text(g),
+                            ))
+                        .toList(),
+                    onChanged: (value) => setState(() {
+                      gender = value;
+                    }),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Cinsiyet gerekli';
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Erkek/Kadın/Belirtmek istemiyorum',
+                      floatingLabelBehavior: FloatingLabelBehavior.never,
+                      labelStyle: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         fontFamily: 'Inter',
                         color: Color.fromRGBO(84, 76, 76, 1),
                       ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 10.0,
+                        horizontal: 15.0,
+                      ),
                     ),
-                    const SizedBox(height: 6),
-                  ],
-
+                    dropdownColor: Colors.white,
+                    menuMaxHeight: 300.0,
+                    icon: const Icon(Icons.arrow_drop_down),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'Inter',
+                      color: Color.fromRGBO(84, 76, 76, 1),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
                   // Common Fields (applies both to "Kendim için" and "Yakınım için")
                   const Align(
                     alignment: Alignment.centerLeft,
@@ -620,6 +729,12 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
                         horizontal: 15.0,
                       ),
                     ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'İl gerekli';
+                      }
+                      return null;
+                    },
                     dropdownColor: Colors.white,
                     menuMaxHeight: 300.0,
                     icon: const Icon(Icons.arrow_drop_down),
@@ -672,6 +787,12 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
                         horizontal: 15.0,
                       ),
                     ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'İlçe gerekli';
+                      }
+                      return null;
+                    },
                     dropdownColor: Colors.white,
                     menuMaxHeight: 300.0,
                     icon: const Icon(Icons.arrow_drop_down),
@@ -718,6 +839,12 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
                       setState(() {
                         selectedHospital = value;
                       });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Hastane adresi gerekli';
+                      }
+                      return null;
                     },
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
@@ -770,6 +897,12 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
                         horizontal: 15.0,
                       ),
                     ),
+                    validator: (value) {
+                      if (value == null) {
+                        return 'Ünite sayısı gerekli';
+                      }
+                      return null;
+                    },
                     dropdownColor: Colors.white,
                     menuMaxHeight: 300.0,
                     icon: const Icon(Icons.arrow_drop_down),

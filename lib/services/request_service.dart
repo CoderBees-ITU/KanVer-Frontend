@@ -7,7 +7,6 @@ class BloodRequestService {
   final String _baseUrl = "https://kanver-backend-93774604105.us-central1.run.app";
 
   Future<Map<String, dynamic>> createBloodRequest({
-    required int requestedTcId,
     required int patientTcId,
     required String bloodType,
     required int donorCount,
@@ -24,7 +23,6 @@ class BloodRequestService {
 
     print(hospital);
     final body = {
-      'requested_tc_id': requestedTcId,
       'patient_tc_id': patientTcId == "" ? null : patientTcId,
       'blood_type': bloodType == "" ? null : bloodType,
       'age': patientAge == 0 ? null : patientAge,
