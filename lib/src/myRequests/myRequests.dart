@@ -9,6 +9,9 @@ import 'package:location/location.dart' as loc;
 import 'package:geocoding/geocoding.dart';
 import 'package:location/location.dart';
 
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 class MyRequests extends StatefulWidget {
   @override
   _IsteklerimState createState() => _IsteklerimState();
@@ -255,58 +258,56 @@ class _IsteklerimState extends State<MyRequests> {
   }
 
   Future<List<BloodRequest>> fetchBloodRequests() async {
-    // Mock data
-    await Future.delayed(Duration(seconds: 2)); // Simulate network delay
-    return [
-      BloodRequest(
-        title: '2 Tüp Kan Bağışı Bekleniyor',
-        age: 55,
-        blood: 'B+',
-        amount: 2,
-        request_id: '6',
-        time: '2 saat önce',
-        progress: 0.25,
-        cityy: 'Ankara',
-        districtt: 'Çankaya',
-        patient_name: 'Ali',
-        patient_surname: 'Kaya',
-        isClosed: false,
-      ),
-    ];
+    const String baseUrl =
+        "https://latest-revision---kanver-backend-ujtqwslguq-uc.a.run.app";
+    final String url = "$baseUrl/request";
+
+    try {
+      final response = await http.get(Uri.parse(url), headers: {
+        'Content-Type': 'application/json',
+      });
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+
+        // JSON verisini BloodRequest nesnelerine dönüştürüyoruz
+        print("test");
+        return data.map((json) => BloodRequest.fromJson(json)).toList();
+      } else {
+        throw Exception('Kan bağışı talepleri getirilemedi');
+      }
+    } catch (e) {
+      throw Exception('Hata: $e');
+    }
   }
 
   Future<List<BloodRequest>> fetchUserCreatedRequests() async {
-    await Future.delayed(Duration(seconds: 2)); // Simulate network delay
-    return [
-      BloodRequest(
-        title: 'Oluşturduğunuz İstek 1',
-        age: 25,
-        blood: 'B+',
-        patient_surname: 'Kaya',
-        patient_name: 'Ali',
-        amount: 2,
-        request_id: '7',
-        time: '1 saat önce',
-        progress: 0.8,
-        cityy: 'İstanbul',
-        districtt: 'Kadıköy',
-        isClosed: false,
-      ),
-      BloodRequest(
-        title: 'Oluşturduğunuz İstek 2',
-        age: 45,
-        blood: '0-',
-        patient_surname: 'Kaya',
-        patient_name: 'Ali',
-        amount: 1,
-        request_id: '8',
-        time: '3 yıl önce',
-        progress: 0.6,
-        cityy: 'Ankara',
-        districtt: 'Çankaya',
-        isClosed: true,
-      ),
-    ];
+    const String baseUrl =
+        "https://latest-revision---kanver-backend-ujtqwslguq-uc.a.run.app";
+    final String url = "$baseUrl/request/my_requests";
+
+    // Mevcut kullanıcı kimliği alınıyor
+    final String userId =
+        Auth().user!.uid; // Örneğin Auth servisinden kullanıcı kimliği
+
+    try {
+      final response = await http.get(Uri.parse(url), headers: {
+        'Content-Type': 'application/json',
+        'Authorization': userId,
+      });
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+
+        // JSON verisini BloodRequest nesnelerine dönüştürüyoruz
+
+        return data.map((json) => BloodRequest.fromJson(json)).toList();
+      } else {
+        throw Exception('Oluşturulan talepler getirilemedi');
+      }
+    } catch (e) {
+      throw Exception('Hata: $e');
+    }
   }
 }
 
@@ -533,4 +534,21 @@ class BloodRequest {
     required this.districtt,
     required this.isClosed,
   });
+
+  factory BloodRequest.fromJson(Map<String, dynamic> json) {
+    return BloodRequest(
+      title: json['title'] ?? 'Kan Bağışı Bekleniyor',
+      age: json['Age'] ?? 0,
+      blood: json['Blood_Type'] ?? 'Bilinmiyor',
+      amount: json['Donor_Count'] ?? 1,
+      time: json['Create_Time'] ?? 'Bilinmiyor',
+      progress: 0.0,
+      cityy: json['City'] ?? 'Bilinmiyor',
+      districtt: json['District'] ?? 'Bilinmiyor',
+      isClosed: json['Status'] == 'closed',
+      patient_name: json['Patient_Name'] ?? 'Bilinmiyor',
+      patient_surname: json['Patient_Surname'] ?? 'Bilinmiyor',
+      request_id: json['Request_ID']?.toString() ?? '0',
+    );
+  }
 }
