@@ -94,7 +94,7 @@ class _HomeState extends State<Home> {
           'age': request['Age'] ?? 0,
           'blood': request['Blood_Type'] ?? 'N/A',
           'amount': request['Donor_Count'] ?? 0,
-          'time': DateTime.parse(request['Create_Time']),
+          'time': DateTime.parse(request['Create_Time'] + 'Z').toLocal(),
           'progress': request['Status'] ?? 'Unknown',
           'cityy': request['City'] ?? 'N/A',
           'districtt': request['District'] ?? 'N/A',
@@ -428,7 +428,6 @@ class _HomeContentState extends State<HomeContent> {
       // optional: call initialize / fetch
       await widget.onInitializeRequests();
       final requests = await widget.onInitializeRequests();
-
       if (!mounted) return;
       setState(() {
         _requests = requests;
@@ -641,7 +640,7 @@ class _HomeContentState extends State<HomeContent> {
       time: request['time'],
       cityy: request['cityy'],
       districtt: request['districtt'],
-      progress: request['progress'],
+      onTheWayCount: request['request']['On_The_Way_Count'] ?? 0,
       request: request['request'],
       icon: const Icon(Icons.bloodtype),
       onArrowPressed: () {
@@ -656,7 +655,7 @@ class _HomeContentState extends State<HomeContent> {
               donorAmount: request['amount'].toString(),
               patientAge: request['age'],
               hospitalName: request['request']['Hospital'],
-              additionalInfo: request['request']['Note'],
+              additionalInfo: request['request']['Note'] ?? '',
               hospitalLocation: LatLng(
                 double.tryParse(request['request']['Lat']?.toString() ?? '0') ??
                     0.0,
@@ -720,7 +719,7 @@ class _CustomCard extends StatelessWidget {
   final DateTime time;
   final Icon icon;
   final VoidCallback onArrowPressed;
-  final String progress;
+  final int onTheWayCount;
   final String cityy;
   final String districtt;
   final Map<String, dynamic> request;
@@ -734,7 +733,7 @@ class _CustomCard extends StatelessWidget {
     required this.time,
     required this.icon,
     required this.onArrowPressed,
-    required this.progress,
+    required this.onTheWayCount,
     required this.cityy,
     required this.districtt,
     required this.request,
@@ -770,7 +769,7 @@ class _CustomCard extends StatelessWidget {
       children: [
         Expanded(
           child: LinearProgressIndicator(
-            value: double.tryParse("0.4") ?? 0.0,
+            value:  onTheWayCount / amount,
             backgroundColor: Color(0xffE8DEF8),
             valueColor: AlwaysStoppedAnimation<Color>(
                 Color(0xff65558F)), // Custom progress color
@@ -812,7 +811,7 @@ class _CustomCard extends StatelessWidget {
         const SizedBox(height: 4),
         _buildInfoRow('Hasta Yaşı: ', age.toString()),
         const SizedBox(height: 4),
-        _buildInfoRow('Kan Grubu: ', blood),
+        _buildInfoRow('Kan Grubu: ', onTheWayCount.toString()),
       ],
     );
   }
