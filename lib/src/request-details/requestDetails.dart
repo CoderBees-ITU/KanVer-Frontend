@@ -189,6 +189,9 @@ class _RequestDetailsState extends State<RequestDetails> {
                   SizedBox(
                     width: double.infinity,
                     child: AnimatedPressButton(
+                      text: (widget.type == 'bloodRequest')
+                          ? 'Bağış Yapacağım'
+                          : 'İsteği İptal et',
                       completeFunction: _onDonationButtonPressed,
                     ),
                   ),

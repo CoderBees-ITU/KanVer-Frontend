@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 class AnimatedPressButton extends StatefulWidget {
   final Function completeFunction;
+  final String text;
 
-  const AnimatedPressButton({required this.completeFunction, Key? key})
+  const AnimatedPressButton({required this.completeFunction, Key? key, required this.text})
       : super(key: key);
 
   @override
@@ -91,7 +92,7 @@ class _AnimatedPressButtonState extends State<AnimatedPressButton>
                 ),
               ),
               onPressed: null, // GestureDetector handles the press
-              label: const Text("Bağış Yapacağım"),
+              label: Text(widget.text),
               icon: const Icon(Icons.check),
             ),
           );

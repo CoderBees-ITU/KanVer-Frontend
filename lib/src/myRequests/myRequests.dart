@@ -1,313 +1,299 @@
 // ignore_for_file: prefer_const_constructors
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:kanver/services/auth_service.dart';
-import 'package:kanver/src/create-requestV1/createRequestV1.dart';
+import 'package:kanver/services/request_service.dart';
 import 'package:kanver/src/request-details/requestDetails.dart';
-import 'package:kanver/src/widgets/CitySelectModal.dart';
-import 'package:location/location.dart' as loc;
-import 'package:geocoding/geocoding.dart';
-import 'package:location/location.dart';
-
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class MyRequests extends StatefulWidget {
+  const MyRequests({Key? key}) : super(key: key);
+
   @override
-  _IsteklerimState createState() => _IsteklerimState();
+  _MyRequestsState createState() => _MyRequestsState();
 }
 
-class _IsteklerimState extends State<MyRequests> {
-  int _selectedIndex = 0;
-
+class _MyRequestsState extends State<MyRequests> {
+  bool _isLoading = false;
   String _userBloodType = 'B+';
-
-  /* Future<void> _fetchUserBloodType() async {
-    try {
-      // Replace this with the actual API/database call
-      String bloodTypeFromDB = await AuthService().getUserBloodType();
-      setState(() {
-        _userBloodType = bloodTypeFromDB;
-      });
-    } catch (e) {
-      debugPrint('Error fetching user blood type: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching user information.')),
-      );
-    }
-  } */
-
-  // Location instance
-  final loc.Location _location = loc.Location();
-
-  late bool _serviceEnabled;
-  late PermissionStatus _permissionGranted;
-  late LocationData _locationData;
+  List<BloodRequest> _participatedRequests = [];
+  List<BloodRequest> _createdRequests = [];
+  String? _error;
 
   @override
   void initState() {
     super.initState();
+    _loadInitialData();
   }
 
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
-  // Navigation logic
-  void _onItemTapped(int index) {
+  Future<void> _loadInitialData() async {
     setState(() {
-      _selectedIndex = index;
-      if (index == 0) {
-        Navigator.pushNamed(context, '/');
-      } else if (index == 1) {
-        Navigator.pushNamed(context, '/');
-      } else if (index == 2) {
-        // Auth().signOut();
-      }
+      _isLoading = true;
+      _error = null;
     });
+
+    try {
+      await Future.wait([
+        _fetchParticipatedRequests(),
+        _fetchCreatedRequests(),
+      ]);
+    } catch (e) {
+      setState(() {
+        _error = 'Veriler yüklenirken bir hata oluştu: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchParticipatedRequests() async {
+    print('fetching participated requests');
+    try {
+      final response = await BloodRequestService().fetchUserDonatedRequests();
+      if (response['success'] && mounted) {
+        setState(() {
+          _participatedRequests = [];
+          //     (response['data']['requests'] as List).map((json) {
+          //     print(json);
+          //   return BloodRequest(
+          //     title: "${json['patient_name']} için kan isteği",
+          //     age: json['Age'] ?? 0,
+          //     blood: json['Blood_Type'] ?? '',
+          //     amount: json['Donor_Count'] ?? 0,
+          //     time: json['Create_Time'] ?? '',
+          //     progress: (json['On_The_Way_Count'] ?? 0) /
+          //         (json['Donor_Count'] == 0 ? 1 : json['Donor_Count']),
+          //     cityy: json['City'] ?? '',
+          //     districtt: json['District'] ?? '',
+          //     status: json['Status'] ?? '',
+          //     patient_name: json['patient_name'] ?? '',
+          //     patient_surname: json['patient_surname'] ?? '',
+          //     request_id: json['request_id']?.toString() ?? '',
+          //   );
+          // }).toList();
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Katıldığınız istekler yüklenemedi: $e';
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchCreatedRequests() async {
+    try {
+      final response = await BloodRequestService().fetchUserCreatedRequests();
+      if (response['success'] && mounted) {
+        setState(() {
+          print(response['data']);
+          _createdRequests = (response['data'] as List).map((json) {
+            return BloodRequest(
+              title: "${json['patient_name']} için kan isteği",
+              age: json['Age'] ?? 0,
+              blood: json['Blood_Type'] ?? '',
+              amount: json['Donor_Count'] ?? 0,
+              time: json['Create_Time'] ?? '',
+              progress: (json['On_The_Way_Count'] ?? 0) /
+                  (json['Donor_Count'] == 0 ? 1 : json['Donor_Count']),
+              cityy: json['City'] ?? '',
+              districtt: json['District'] ?? '',
+              status: json['Status'] ?? '',
+              patient_name: json['patient_name'] ?? '',
+              patient_surname: json['patient_surname'] ?? '',
+              request_id: json['request_id']?.toString() ?? '',
+              hospital: json['Hospital'] ?? '',
+              note: json['Note'],
+              lat: json['Lat']?.toString() ?? '',
+              lng: json['Lng']?.toString() ?? '',
+              requestType: "myRequests",
+            );
+          }).toList();
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Oluşturduğunuz istekler yüklenemedi: $e';
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2, // Two tabs: "Takip Ettiklerim" and "Oluşturduklarım"
+      length: 2,
       child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Text('İsteklerim'),
-          bottom: TabBar(
-            tabs: [
-              Tab(text: "Takip Ettiklerim"),
-              Tab(text: "Oluşturduklarım"),
-            ],
-            indicatorColor: Color(0xff6B548D),
-            labelColor: Color(0xff6B548D),
-            unselectedLabelColor: Colors.grey,
-            labelStyle: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              fontFamily: 'Roboto',
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            title: Text('İsteklerim'),
+            bottom: TabBar(
+              tabs: const [
+                Tab(text: "Katıldığım İstekler"),
+                Tab(text: "Oluşturduklarım"),
+              ],
+              indicatorColor: Color(0xff6B548D),
+              labelColor: Color(0xff6B548D),
+              unselectedLabelColor: Colors.grey,
+              labelStyle: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                fontFamily: 'Roboto',
+              ),
             ),
           ),
-          actions: [],
-        ),
-        body: TabBarView(
-          children: [
-            // Tab 1: Takip Ettiklerim
-            _buildTakipEttiklerimTab(),
-            // Tab 2: Oluşturduklarım
-            _buildOlusturduklarimTab(),
-          ],
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: "Ana Sayfa",
+          body: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+            child: TabBarView(
+              children: [
+                _buildRequestsList(_participatedRequests,
+                    'Gittiğiniz kan isteği bulunmamaktadır.'),
+                _buildRequestsList(_createdRequests,
+                    'Oluşturduğunuz kan isteği bulunmamaktadır.'),
+              ],
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.list),
-              label: "İsteklerim",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: "My Profile",
-            ),
-          ],
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          selectedItemColor: const Color(0xff65558F),
-          unselectedItemColor: Colors.grey,
-        ),
+          )),
+    );
+  }
+
+  Widget _buildRequestsList(List<BloodRequest> requests, String emptyMessage) {
+    if (_isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    if (requests.isEmpty) {
+      return Center(child: Text(emptyMessage));
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadInitialData,
+      child: ListView.builder(
+        itemCount: requests.length,
+        itemBuilder: (context, index) => _buildRequestCard(requests[index]),
       ),
     );
   }
 
-  // Tab for "Takip Ettiklerim"
-  Widget _buildTakipEttiklerimTab() {
-    return FutureBuilder<List<BloodRequest>>(
-      future: fetchBloodRequests(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('Kan isteği bulunamadı'));
-        } else {
-          // Filter requests based on the user's blood type
-          final filteredRequests = snapshot.data!.where((request) {
-            // Ensure request matches user's blood type
-            if (request.blood != _userBloodType || request.isClosed) {
-              return false;
-            }
-            return true; // Include request if it matches the blood type
-          }).toList();
-
-          return ListView.builder(
-            itemCount: filteredRequests.length,
-            itemBuilder: (context, index) {
-              final request = filteredRequests[index];
-              return _CustomCard(
-                title: request.title,
-                age: request.age,
-                requestId: request.request_id,
-                blood: request.blood,
-                amount: request.amount,
-                time: request.time,
-                icon: Icon(Icons.bloodtype),
-                cityy: request.cityy,
-                districtt: request.districtt,
-                isClosed: request.isClosed,
-                onArrowPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RequestDetails(
-                        patient_name: request.patient_name,
-                        patient_surname: request.patient_surname,
-                        bloodType: request.blood,
-                        request_id: request.request_id,
-                        donorAmount: request.amount.toString(),
-                        patientAge: request.age,
-                        hospitalName: 'Hastane Adı',
-                        additionalInfo: 'Ek bilgi',
-                        hospitalLocation: LatLng(41.0082, 28.9784),
-                        type: 'onTheWay',
-                      ),
-                    ),
-                  );
-                },
-                progress: request.progress,
-              );
-            },
-          );
-        }
-      },
+  Widget _buildRequestCard(BloodRequest request) {
+    return _CustomCard(
+      title: request.title,
+      age: request.age,
+      requestId: request.request_id,
+      blood: request.blood,
+      amount: request.amount,
+      time: _formatTime(request.time),
+      icon: Icon(Icons.bloodtype),
+      cityy: request.cityy,
+      districtt: request.districtt,
+      status: request.status,
+      progress: request.progress,
+      onArrowPressed: () => _navigateToDetails(request),
     );
   }
 
-  // Tab for "Oluşturduklarım"
-  Widget _buildOlusturduklarimTab() {
-    return FutureBuilder<List<BloodRequest>>(
-      future:
-          fetchUserCreatedRequests(), // Replace this with the actual backend function
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Hata: ${snapshot.error}',
-              style: TextStyle(color: Colors.red),
-            ),
-          );
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(
-            child: Text(
-              'Oluşturduğunuz kan isteği bulunmamaktadır.',
-              style: TextStyle(fontSize: 16),
-            ),
-          );
-        } else {
-          final userCreatedRequests = snapshot.data!;
-          return ListView.builder(
-            itemCount: userCreatedRequests.length,
-            itemBuilder: (context, index) {
-              final request = userCreatedRequests[index];
-              return _CustomCard(
-                title: request.title,
-                age: request.age,
-                requestId: request.request_id,
-                blood: request.blood,
-                amount: request.amount,
-                time: request.time,
-                icon: Icon(Icons.bloodtype),
-                cityy: request.cityy,
-                districtt: request.districtt,
-                isClosed: request.isClosed,
-                onArrowPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RequestDetails(
-                        patient_name: request.patient_name,
-                        patient_surname: request.patient_surname,
-                        bloodType: request.blood,
-                        request_id: request.request_id,
-                        donorAmount: request.amount.toString(),
-                        patientAge: request.age,
-                        hospitalName: 'Hastane Adı',
-                        additionalInfo: 'Ek bilgi',
-                        hospitalLocation:
-                            LatLng(41.0082, 28.9784), // Mock location
-                        type: 'myRequest',
-                      ),
-                    ),
-                  );
-                },
-                progress: request.progress,
-              );
-            },
-          );
-        }
-      },
+  String _formatTime(String timeStr) {
+    try {
+      final DateTime time = DateTime.parse(timeStr + 'Z').toLocal();
+      final Duration difference = DateTime.now().difference(time);
+
+      if (difference.inDays > 0) {
+        return '${difference.inDays} gün önce';
+      } else if (difference.inHours > 0) {
+        return '${difference.inHours} saat önce';
+      } else if (difference.inMinutes > 0) {
+        return '${difference.inMinutes} dakika önce';
+      } else {
+        return 'Az önce';
+      }
+    } catch (e) {
+      return timeStr;
+    }
+  }
+
+  void _navigateToDetails(BloodRequest request) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RequestDetails(
+          patient_name: request.patient_name,
+          patient_surname: request.patient_surname,
+          bloodType: request.blood,
+          request_id: request.request_id,
+          donorAmount: request.amount.toString(),
+          patientAge: request.age,
+          hospitalName: request.hospital,
+          additionalInfo: request.note ?? '',
+          hospitalLocation: LatLng(
+            double.tryParse(request.lat?.toString() ?? '0') ?? 0.0,
+            double.tryParse(request.lng?.toString() ?? '0') ?? 0.0,
+          ),
+          type: request.requestType ?? 'bloodRequest',
+        ),
+      ),
     );
   }
+}
 
-  Future<List<BloodRequest>> fetchBloodRequests() async {
-    const String baseUrl =
-        "https://latest-revision---kanver-backend-ujtqwslguq-uc.a.run.app";
-    final String url = "$baseUrl/request";
+class BloodRequest {
+  final String title;
+  final int age;
+  final String blood;
+  final int amount;
+  final String time;
+  final double progress;
+  final String cityy;
+  final String patient_surname;
+  final String patient_name;
+  final String districtt;
+  final String status;
+  final String request_id;
+  final String hospital;
+  final String? lat;
+  final String? lng;
+  final String? note;
+  final String? requestType;
 
-    try {
-      final response = await http.get(Uri.parse(url), headers: {
-        'Content-Type': 'application/json',
-      });
+  const BloodRequest({
+    required this.title,
+    required this.age,
+    required this.blood,
+    required this.amount,
+    required this.time,
+    required this.progress,
+    required this.cityy,
+    required this.districtt,
+    required this.status,
+    required this.patient_name,
+    required this.patient_surname,
+    required this.request_id,
+    required this.hospital,
+    this.requestType,
+    this.note,
+    this.lat,
+    this.lng,
+  });
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-
-        // JSON verisini BloodRequest nesnelerine dönüştürüyoruz
-        print("test");
-        return data.map((json) => BloodRequest.fromJson(json)).toList();
-      } else {
-        throw Exception('Kan bağışı talepleri getirilemedi');
-      }
-    } catch (e) {
-      throw Exception('Hata: $e');
-    }
-  }
-
-  Future<List<BloodRequest>> fetchUserCreatedRequests() async {
-    const String baseUrl =
-        "https://latest-revision---kanver-backend-ujtqwslguq-uc.a.run.app";
-    final String url = "$baseUrl/request/my_requests";
-
-    // Mevcut kullanıcı kimliği alınıyor
-    final String userId =
-        Auth().user!.uid; // Örneğin Auth servisinden kullanıcı kimliği
-
-    try {
-      final response = await http.get(Uri.parse(url), headers: {
-        'Content-Type': 'application/json',
-        'Authorization': userId,
-      });
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-
-        // JSON verisini BloodRequest nesnelerine dönüştürüyoruz
-
-        return data.map((json) => BloodRequest.fromJson(json)).toList();
-      } else {
-        throw Exception('Oluşturulan talepler getirilemedi');
-      }
-    } catch (e) {
-      throw Exception('Hata: $e');
-    }
+  factory BloodRequest.fromJson(Map<String, dynamic> json) {
+    return BloodRequest(
+      title: "${json['Patient_Name'] ?? 'İsimsiz'} için kan isteği",
+      age: json['Age'] ?? 0,
+      blood: json['Blood_Type'] ?? 'Bilinmiyor',
+      amount: json['Donor_Count'] ?? 1,
+      time: json['Create_Time'] ?? DateTime.now().toIso8601String(),
+      progress: 0.0,
+      cityy: json['City'] ?? 'Bilinmiyor',
+      districtt: json['District'] ?? 'Bilinmiyor',
+      status: json['Status'] ?? '',
+      patient_name: json['Patient_Name'] ?? 'Bilinmiyor',
+      patient_surname: json['Patient_Surname'] ?? 'Bilinmiyor',
+      request_id: json['Request_ID']?.toString() ?? '0',
+      hospital: json['Hospital'] ?? 'Bilinmiyor',
+      note: json['Note'],
+    );
   }
 }
 
@@ -323,8 +309,9 @@ class _CustomCard extends StatelessWidget {
   final double progress;
   final String cityy;
   final String districtt;
-
-  final bool isClosed;
+  final String? lat;
+  final String? lng;
+  final String status;
 
   const _CustomCard({
     Key? key,
@@ -339,15 +326,15 @@ class _CustomCard extends StatelessWidget {
     required this.progress,
     required this.cityy,
     required this.districtt,
-    required this.isClosed,
+    required this.status,
+    this.lat,
+    this.lng,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        !isClosed ? onArrowPressed : null;
-      },
+      onTap: onArrowPressed,
       child: Card(
         elevation: 4,
         shape: RoundedRectangleBorder(
@@ -358,7 +345,7 @@ class _CustomCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (isClosed)
+              if (status == 'closed')
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: Row(
@@ -378,7 +365,7 @@ class _CustomCard extends StatelessWidget {
                 ),
               Row(
                 children: [
-                  if (!isClosed)
+                  if (status != 'closed')
                     Expanded(
                       child: LinearProgressIndicator(
                         value: progress,
@@ -387,7 +374,7 @@ class _CustomCard extends StatelessWidget {
                             Color(0xff65558F)), // Custom progress color
                       ),
                     ),
-                  if (!isClosed)
+                  if (status != 'closed')
                     IconButton(
                       icon: Icon(
                         Icons.arrow_forward_ios,
@@ -502,53 +489,6 @@ class _CustomCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class BloodRequest {
-  final String title;
-  final int age;
-  final String blood;
-  final int amount;
-  final String time;
-  final double progress;
-  final String cityy;
-  final String patient_surname;
-  final String patient_name;
-  final String districtt;
-  final bool isClosed;
-  final String request_id;
-
-  BloodRequest({
-    required this.title,
-    required this.age,
-    required this.blood,
-    required this.amount,
-    required this.patient_name,
-    required this.patient_surname,
-    required this.request_id,
-    required this.time,
-    required this.progress,
-    required this.cityy,
-    required this.districtt,
-    required this.isClosed,
-  });
-
-  factory BloodRequest.fromJson(Map<String, dynamic> json) {
-    return BloodRequest(
-      title: json['title'] ?? 'Kan Bağışı Bekleniyor',
-      age: json['Age'] ?? 0,
-      blood: json['Blood_Type'] ?? 'Bilinmiyor',
-      amount: json['Donor_Count'] ?? 1,
-      time: json['Create_Time'] ?? 'Bilinmiyor',
-      progress: 0.0,
-      cityy: json['City'] ?? 'Bilinmiyor',
-      districtt: json['District'] ?? 'Bilinmiyor',
-      isClosed: json['Status'] == 'closed',
-      patient_name: json['Patient_Name'] ?? 'Bilinmiyor',
-      patient_surname: json['Patient_Surname'] ?? 'Bilinmiyor',
-      request_id: json['Request_ID']?.toString() ?? '0',
     );
   }
 }

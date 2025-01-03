@@ -4,7 +4,8 @@ import 'dart:convert';
 import 'package:kanver/services/auth_service.dart';
 
 class BloodRequestService {
-  final String _baseUrl = "https://kanver-backend-93774604105.us-central1.run.app";
+  final String _baseUrl =
+      "https://kanver-backend-93774604105.us-central1.run.app";
 
   Future<Map<String, dynamic>> createBloodRequest({
     required int patientTcId,
@@ -52,7 +53,7 @@ class BloodRequestService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return {'success': true, 'message': 'Request created'};
+        return {'success': true, 'message': 'Request created', 'data': data};
       } else {
         return {'success': false, 'message': 'Failed to create request'};
       }
@@ -68,19 +69,13 @@ class BloodRequestService {
   }) async {
     String query = "?";
 
-    if (city == "Tümü") {
-      city = "";
-    } else {
+    if (city != "Tümü") {
       query += "city=$city&";
     }
-    if (district == "Tümü") {
-      district = "";
-    } else {
+    if (district != "Tümü") {
       query += "district=$district&";
     }
-    if (bloodType == "Tümü") {
-      bloodType = "";
-    } else {
+    if (bloodType != "Tümü") {
       query += "blood_type=$bloodType&";
     }
 
@@ -123,10 +118,52 @@ class BloodRequestService {
         final data = jsonDecode(response.body);
         return {'success': true, 'data': data};
       } else {
-        return {'success': false, 'message': 'Failed to get request'};
+        return {'success': false, 'message': 'Failed to update request status'};
       }
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }
   }
+
+  Future<Map<String, dynamic>> fetchUserCreatedRequests() async {
+    final String url = "$_baseUrl/request/my_requests";
+
+    try {
+      final response = await http.get(Uri.parse(url), headers: {
+        'Content-Type': 'application/json',
+        'Authorization': Auth().user!.uid,
+      });
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'data': data};
+      } else {
+        return {'success': false, 'message': 'Failed to get requests'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchUserDonatedRequests() async {
+    try {
+      final response = await http.get(
+        Uri.parse("$_baseUrl/on_the_way/my"),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': Auth().user!.uid
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'data': data};
+      } else {
+        return {'success': false, 'message': 'Failed to get requests'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
 }
