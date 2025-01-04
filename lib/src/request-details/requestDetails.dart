@@ -50,7 +50,86 @@ class _RequestDetailsState extends State<RequestDetails> {
     setState(() {
       _isLoading = true; // Start loading spinner
     });
+    if (widget.type == 'bloodRequest') {
+      _onDonationButtonPressedForSetOnTheWay();
+    } else if (widget.type == 'participatedRequest') {
+      _onDonationButtonPressedForDeleteOnTheWay();
+    } else {
+      _onDonationButtonPressedForDeleteRequest();
+    }
+  }
 
+  _onDonationButtonPressedForDeleteRequest() {
+    int? requestId = int.tryParse(widget.request_id);
+    if (requestId == null) {
+      print("Invalid request_id: ${widget.request_id}");
+      return;
+    }
+    BloodRequestService().deleteBloodRequest(requestId: requestId).then(
+      (response) {
+        if (!mounted) return;
+        setState(() {
+          _isLoading = false; // Stop loading spinner
+        });
+
+        if (response['success']) {
+          Navigator.pop(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['message']),
+            ),
+          );
+        }
+      },
+    ).catchError((error) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false; // Stop loading if error
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Bir hata oluştu: $error')),
+      );
+    });
+  }
+
+  _onDonationButtonPressedForDeleteOnTheWay() {
+    //final requestId = widget.request_id;
+    int? requestId = int.tryParse(widget.request_id);
+    if (requestId == null) {
+      print("Invalid request_id: ${widget.request_id}");
+      return;
+    }
+
+    BloodRequestService().deleteOnTheWay(requestId: requestId).then(
+      (response) {
+        if (!mounted) return;
+        setState(() {
+          _isLoading = false; // Stop loading spinner
+        });
+
+        if (response['success']) {
+          Navigator.pop(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['message']),
+            ),
+          );
+        }
+      },
+    ).catchError((error) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false; // Stop loading if error
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Bir hata oluştu: $error')),
+      );
+    });
+  }
+
+  _onDonationButtonPressedForSetOnTheWay() {
     BloodRequestService().setOnTheWay(requestId: widget.request_id).then(
       (response) {
         if (!mounted) return;
@@ -191,7 +270,9 @@ class _RequestDetailsState extends State<RequestDetails> {
                     child: AnimatedPressButton(
                       text: (widget.type == 'bloodRequest')
                           ? 'Bağış Yapacağım'
-                          : 'İsteği İptal et',
+                          : (widget.type == 'participatedRequest')
+                              ? 'Bağışı İptal Et'
+                              : 'İsteği İptal et',
                       completeFunction: _onDonationButtonPressed,
                     ),
                   ),

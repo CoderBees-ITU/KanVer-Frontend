@@ -341,7 +341,6 @@ class _HomeState extends State<Home> {
 
 // profile_screen.dart
 
-
 // custom_bottom_navigation.dart
 class CustomBottomNavigation extends StatelessWidget {
   final int selectedIndex;
@@ -769,7 +768,7 @@ class _CustomCard extends StatelessWidget {
       children: [
         Expanded(
           child: LinearProgressIndicator(
-            value:  onTheWayCount / amount,
+            value: onTheWayCount / amount,
             backgroundColor: Color(0xffE8DEF8),
             valueColor: AlwaysStoppedAnimation<Color>(
                 Color(0xff65558F)), // Custom progress color
@@ -811,7 +810,7 @@ class _CustomCard extends StatelessWidget {
         const SizedBox(height: 4),
         _buildInfoRow('Hasta Yaşı: ', age.toString()),
         const SizedBox(height: 4),
-        _buildInfoRow('Kan Grubu: ', onTheWayCount.toString()),
+        _buildInfoRow('Kan Grubu: ', blood),
       ],
     );
   }
