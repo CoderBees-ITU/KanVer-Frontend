@@ -57,6 +57,8 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
   List<dynamic> districts = [];
   List<dynamic> hospitals = [];
 
+   bool isSubmitting = false;
+
   /// Loading state for fetching hospitals
   bool isLoadingHospitals = false;
 
@@ -194,50 +196,55 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
   /// Save form to the database (mock function)
   void _saveForm() async {
     if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+      setState(() {
+        isSubmitting = true; // Start loading
+      });
 
-      final formData = {
-        'formType': formType,
-        'tcNumber': tcNumber,
-        'bloodGroup': bloodGroup,
-        'age': age,
-        'gender': gender,
-        'city': selectedCity,
-        'district': selectedDistrict,
-        'hospitalAddress': selectedHospital,
-        'unitCount': unitCount,
-        'additionalInfo': additionalInfo,
-      };
+      try {
+        _formKey.currentState!.save();
 
-      dynamic response = await BloodRequestService().createBloodRequest(
-        patientTcId: int.tryParse(tcNumber ?? '0') ?? 0,
-        bloodType: bloodGroup ?? '',
-        donorCount: int.tryParse(unitCount ?? '0') ?? 0,
-        patientAge: int.tryParse(age ?? '0') ?? 0,
-        hospital: jsonDecode(selectedHospital!),
-        note: additionalInfo ?? '',
-        gender: gender!,
-        city: selectedCity!,
-        district: selectedDistrict!,
-        patientName: patientName ?? '',
-        patientSurname: patientSurname ?? '',
-      );
-      if (response['success']) {
-        print("Request created successfully");
-        Navigator.pop(context);
-      } else {
-        showAboutDialog(
+        dynamic response = await BloodRequestService().createBloodRequest(
+          patientTcId: int.tryParse(tcNumber ?? '0') ?? 0,
+          bloodType: bloodGroup ?? '',
+          donorCount: int.tryParse(unitCount ?? '0') ?? 0,
+          patientAge: int.tryParse(age ?? '0') ?? 0,
+          hospital: jsonDecode(selectedHospital!),
+          note: additionalInfo ?? '',
+          gender: gender!,
+          city: selectedCity!,
+          district: selectedDistrict!,
+          patientName: patientName ?? '',
+          patientSurname: patientSurname ?? '',
+        );
+
+        if (response['success']) {
+          print("Request created successfully");
+          Navigator.pop(context);
+        } else {
+          showAboutDialog(
             context: context,
             applicationName: "Error",
-            children: [Text("Error creating request")]);
-      }
+            children: [Text("Error creating request")],
+          );
+        }
 
-      // Show confirmation
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Form successfully submitted!')),
-      );
+        // Show confirmation
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Form successfully submitted!')),
+        );
+      } catch (e) {
+        debugPrint("Error during form submission: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error submitting the form!')),
+        );
+      } finally {
+        setState(() {
+          isSubmitting = false; // Stop loading
+        });
+      }
     }
   }
+
 
   /// Build the list of hospital dropdown items
   /// If loading, show a single DropdownMenuItem with a progress indicator
@@ -974,9 +981,13 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
               color: Colors.white,
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
-                onPressed: _saveForm,
+                onPressed: isSubmitting
+                    ? null // Disable the button if submitting
+                    : _saveForm,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff6B548D), // Button color
+                  backgroundColor: isSubmitting
+                      ? Colors.grey // Change color to indicate disabled state
+                      : const Color(0xff6B548D),
                   fixedSize: const Size(double.infinity, 56),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(100.0),
@@ -986,18 +997,28 @@ class _CreateRequestV1State extends State<CreateRequestV1> {
                     horizontal: 24.0,
                   ),
                 ),
-                child: const Text(
-                  'Oluştur',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    fontFamily: 'Roboto',
-                  ),
-                ),
+                child: isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Oluştur',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: 'Roboto',
+                        ),
+                      ),
               ),
             ),
           ),
+
         ],
       ),
     );

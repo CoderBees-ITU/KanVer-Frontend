@@ -4,6 +4,7 @@ import 'package:kanver/services/request_service.dart';
 import 'package:kanver/src/home/home.dart';
 import 'package:kanver/src/widgets/pressButton.dart';
 import 'package:kanver/src/widgets/requestDetailCard.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class RequestDetails extends StatefulWidget {
   final String bloodType;
@@ -16,6 +17,7 @@ class RequestDetails extends StatefulWidget {
   final String additionalInfo;
   final LatLng hospitalLocation;
   final String type;
+  final Function? returnFunction;
 
   const RequestDetails({
     Key? key,
@@ -29,6 +31,7 @@ class RequestDetails extends StatefulWidget {
     required this.additionalInfo,
     required this.hospitalLocation,
     required this.type,
+    this.returnFunction,
   }) : super(key: key);
 
   @override
@@ -82,6 +85,12 @@ class _RequestDetailsState extends State<RequestDetails> {
           );
         }
       },
+    ).then(
+      (value) {
+        if (widget.returnFunction != null) {
+          widget.returnFunction!();
+        }
+      },
     ).catchError((error) {
       if (!mounted) return;
       setState(() {
@@ -118,6 +127,12 @@ class _RequestDetailsState extends State<RequestDetails> {
           );
         }
       },
+    ).then(
+      (value) {
+        if (widget.returnFunction != null) {
+          widget.returnFunction!();
+        }
+      },
     ).catchError((error) {
       if (!mounted) return;
       setState(() {
@@ -147,6 +162,12 @@ class _RequestDetailsState extends State<RequestDetails> {
           );
         }
       },
+    ).then(
+      (value) {
+        if (widget.returnFunction != null) {
+          widget.returnFunction!();
+        }
+      },
     ).catchError((error) {
       if (!mounted) return;
       setState(() {
@@ -156,6 +177,22 @@ class _RequestDetailsState extends State<RequestDetails> {
         SnackBar(content: Text('Bir hata oluştu: $error')),
       );
     });
+  }
+
+  Future<void> _openGoogleMaps(double latitude, double longitude) async {
+    final googleMapsUrl =
+        'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+    final googleMapsAppUrl = 'geo:$latitude,$longitude';
+
+    if (await canLaunch(googleMapsAppUrl)) {
+      // Try to launch the app
+      await launch(googleMapsAppUrl);
+    } else if (await canLaunch(googleMapsUrl)) {
+      // Fallback to web if app is not available
+      await launch(googleMapsUrl);
+    } else {
+      throw 'Could not open Google Maps.';
+    }
   }
 
   @override
@@ -200,10 +237,15 @@ class _RequestDetailsState extends State<RequestDetails> {
                   icon: const Icon(Icons.person),
                 ),
                 const SizedBox(height: 16),
-                CustomCard(
-                  title: "Hastane",
-                  desc: widget.hospitalName,
-                  icon: const Icon(Icons.local_hospital),
+                GestureDetector(
+                  onTap: () => _openGoogleMaps(widget.hospitalLocation.latitude,
+                      widget.hospitalLocation.longitude),
+                  child: CustomCard(
+                    title: "Hastane",
+                    desc: widget.hospitalName,
+                    icon: const Icon(Icons.local_hospital),
+                    additionalIcon: const Icon(Icons.directions)
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Padding(
@@ -229,25 +271,30 @@ class _RequestDetailsState extends State<RequestDetails> {
                 SizedBox(
                   height: 250, // fixed height for the map
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: GoogleMap(
-                      onMapCreated: _onMapCreated,
-                      initialCameraPosition: CameraPosition(
-                        target: widget.hospitalLocation,
-                        zoom: 15.0,
-                      ),
-                      markers: {
-                        Marker(
-                          markerId: const MarkerId('center_marker'),
-                          position: widget.hospitalLocation,
-                          infoWindow: InfoWindow(
-                            title: widget.hospitalName,
-                            snippet: 'Hastane Lokasyonu',
-                          ),
-                        ),
-                      },
-                    ),
-                  ),
+                      borderRadius: BorderRadius.circular(8.0),
+                      child: GestureDetector(
+                          onTap: () => _openGoogleMaps(
+                              widget.hospitalLocation.latitude,
+                              widget.hospitalLocation.longitude),
+                          child: Container(
+                            height: 150,
+                            width: double.infinity,
+                            child: GoogleMap(
+                              initialCameraPosition: CameraPosition(
+                                target: LatLng(widget.hospitalLocation.latitude,
+                                    widget.hospitalLocation.longitude),
+                                zoom: 15,
+                              ),
+                              markers: {
+                                Marker(
+                                  markerId: MarkerId('location'),
+                                  position: LatLng(
+                                      widget.hospitalLocation.latitude,
+                                      widget.hospitalLocation.longitude),
+                                ),
+                              },
+                            ),
+                          ))),
                 ),
                 const SizedBox(height: 80), // Space for the sticky button
               ],

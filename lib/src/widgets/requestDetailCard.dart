@@ -4,12 +4,14 @@ class CustomCard extends StatelessWidget {
   final String title;
   final String desc;
   final Widget? icon;
+  final Icon? additionalIcon;
 
   const CustomCard({
     Key? key,
     required this.title,
     required this.desc,
     this.icon,
+    this.additionalIcon,
   }) : super(key: key);
 
   @override
@@ -49,6 +51,18 @@ class CustomCard extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          Spacer(),
+          additionalIcon ?? Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(11),
+              color: Color(0xffFEF7FF),
+            ),
+            child: Center(
+              child: additionalIcon
+            ),
           ),
         ],
       ),

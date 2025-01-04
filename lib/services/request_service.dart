@@ -223,7 +223,7 @@ class BloodRequestService {
   Future<Map<String, dynamic>> deleteBloodRequest({
     required int requestId,
   }) async {
-    final url = Uri.parse("$_baseUrl/request/$requestId");
+    final url = Uri.parse("$_baseUrl/request?request_id=$requestId");
     try {
       print("Request URL: $url");
       print("Authorization Header: ${Auth().user!.uid}");

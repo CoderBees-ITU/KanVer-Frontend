@@ -54,7 +54,7 @@ class _MyRequestsState extends State<MyRequests> {
       final response = await BloodRequestService().fetchUserDonatedRequests();
       if (response['success'] && mounted) {
         setState(() {
-          print(['data']);
+          print(response['data']);
           _participatedRequests = (response['data'] as List).map((json) {
             print(json);
             return BloodRequest(
@@ -219,8 +219,12 @@ class _MyRequestsState extends State<MyRequests> {
     }
   }
 
-  void _navigateToDetails(BloodRequest request) {
-    Navigator.push(
+  Future<void> _handleReturnFromDetails() async {
+    await _loadInitialData();
+  }
+
+  void _navigateToDetails(BloodRequest request) async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => RequestDetails(
@@ -237,9 +241,15 @@ class _MyRequestsState extends State<MyRequests> {
             double.tryParse(request.lng?.toString() ?? '0') ?? 0.0,
           ),
           type: request.requestType ?? 'bloodRequest',
+          returnFunction: _handleReturnFromDetails,
         ),
       ),
     );
+
+    // If we get a result or pop back, refresh the data
+    if (result == true || result == null) {
+      await _handleReturnFromDetails();
+    }
   }
 }
 
