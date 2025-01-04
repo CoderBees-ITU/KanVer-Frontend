@@ -251,7 +251,9 @@ class _HomeState extends State<Home> {
             ),
           );
         },
-      );
+      ).whenComplete(() {
+          _initializeLocation();
+      });
     });
   }
 
@@ -340,7 +342,6 @@ class _HomeState extends State<Home> {
 }
 
 // profile_screen.dart
-
 
 // custom_bottom_navigation.dart
 class CustomBottomNavigation extends StatelessWidget {
@@ -606,30 +607,9 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
-  // Widget _buildRequestsList() {
-  //   return FutureBuilder<List<Map<String, dynamic>>>(
-  //     future: widget.fetchRequestsFuture,
-  //     builder: (context, snapshot) {
-  //       if (snapshot.connectionState == ConnectionState.waiting) {
-  //         return const Center(child: CircularProgressIndicator());
-  //       }
-
-  //       if (snapshot.hasError) {
-  //         return Center(child: Text("Hata: ${snapshot.error}"));
-  //       }
-
-  //       if (!snapshot.hasData || snapshot.data!.isEmpty) {
-  //         return const Center(child: Text("Kan isteği bulunmamaktadır."));
-  //       }
-
-  //       return ListView.builder(
-  //         itemCount: snapshot.data!.length,
-  //         itemBuilder: (context, index) =>
-  //             _buildRequestCard(context, snapshot.data![index]),
-  //       );
-  //     },
-  //   );
-  // }
+  Future<void> _handleReturnFromDetails() async {
+    await _loadRequests();
+  }
 
   Widget _buildRequestCard(BuildContext context, Map<String, dynamic> request) {
     return _CustomCard(
@@ -643,8 +623,8 @@ class _HomeContentState extends State<HomeContent> {
       onTheWayCount: request['request']['On_The_Way_Count'] ?? 0,
       request: request['request'],
       icon: const Icon(Icons.bloodtype),
-      onArrowPressed: () {
-        Navigator.push(
+      onArrowPressed: () async {
+        final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => RequestDetails(
@@ -657,27 +637,39 @@ class _HomeContentState extends State<HomeContent> {
               hospitalName: request['request']['Hospital'],
               additionalInfo: request['request']['Note'] ?? '',
               hospitalLocation: LatLng(
-                double.tryParse(request['request']['Lat']?.toString() ?? '0') ??
-                    0.0,
-                double.tryParse(request['request']['Lng']?.toString() ?? '0') ??
-                    0.0,
+                double.tryParse(request['request']['Lat']?.toString() ?? '0') ?? 0.0,
+                double.tryParse(request['request']['Lng']?.toString() ?? '0') ?? 0.0,
               ),
               type: 'bloodRequest',
+              returnFunction: _handleReturnFromDetails,
             ),
           ),
         );
+
+        // If we get a result or pop back, refresh the data
+        if (result == true || result == null) {
+          await _handleReturnFromDetails();
+        }
       },
     );
   }
+
+
 
   Widget _buildFloatingActionButton(BuildContext context) {
     return Align(
       alignment: Alignment.bottomRight,
       child: ElevatedButton(
-        onPressed: () => Navigator.push(
+        onPressed: () async {
+        final result = await Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const CreateRequestV1()),
-        ),
+        );
+        
+        if (result == true || result == null) {
+          await _handleReturnFromDetails(); 
+        }
+      },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF6B548D),
           shape: RoundedRectangleBorder(
@@ -688,6 +680,7 @@ class _HomeContentState extends State<HomeContent> {
         child: const Icon(Icons.add, size: 24, color: Colors.white),
       ),
     );
+    
   }
 
   void _showFilterModal(BuildContext context) {
@@ -769,7 +762,7 @@ class _CustomCard extends StatelessWidget {
       children: [
         Expanded(
           child: LinearProgressIndicator(
-            value:  onTheWayCount / amount,
+            value: onTheWayCount / amount,
             backgroundColor: Color(0xffE8DEF8),
             valueColor: AlwaysStoppedAnimation<Color>(
                 Color(0xff65558F)), // Custom progress color
@@ -811,7 +804,7 @@ class _CustomCard extends StatelessWidget {
         const SizedBox(height: 4),
         _buildInfoRow('Hasta Yaşı: ', age.toString()),
         const SizedBox(height: 4),
-        _buildInfoRow('Kan Grubu: ', onTheWayCount.toString()),
+        _buildInfoRow('Kan Grubu: ', blood),
       ],
     );
   }

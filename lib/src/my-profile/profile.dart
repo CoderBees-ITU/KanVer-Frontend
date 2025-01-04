@@ -187,7 +187,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       leading: const Icon(Icons.location_city),
                       title: const Text('Konum'),
                       subtitle:
-                          Text(userData["City"] + " / " + userData["District"]),
+                          Text((userData["City"] ?? "") + " / " + (userData["District"] ?? "")),
                       onTap: () {
                         _initializeLocation();
                       },

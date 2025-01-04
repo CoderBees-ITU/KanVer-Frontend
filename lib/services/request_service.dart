@@ -80,6 +80,8 @@ class BloodRequestService {
     }
 
     final url = Uri.parse("$_baseUrl/request/personalized$query");
+    print(url);
+
     try {
       final response = await http.get(
         url,
@@ -125,6 +127,58 @@ class BloodRequestService {
     }
   }
 
+  Future<Map<String, dynamic>> deleteOnTheWay({
+    required int requestId,
+  }) async {
+    // Construct the URL
+    final url = Uri.parse("$_baseUrl/on_the_way/$requestId");
+
+    try {
+      // Log the request details for debugging
+      print("DELETE Request URL: $url");
+
+      // Make the DELETE HTTP request
+      final response = await http.delete(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization':
+              '${Auth().user?.uid}', // Assuming Auth().user?.uid provides the user ID
+        },
+      );
+
+      // Log the response details for debugging
+      print("Response Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      // Handle the response
+      if (response.statusCode == 200) {
+        // Parse and return the response data
+        final data = jsonDecode(response.body);
+        return {'success': true, 'data': data};
+      } else {
+        // Handle non-200 responses
+        final errorMessage = _parseErrorMessage(response.body);
+        return {'success': false, 'message': errorMessage};
+      }
+    } catch (e) {
+      // Handle exceptions
+      print("Error occurred during DELETE request: $e");
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+// Helper function to parse error messages
+  String _parseErrorMessage(String responseBody) {
+    try {
+      final decodedBody = jsonDecode(responseBody);
+      return decodedBody['message'] ?? 'An unknown error occurred.';
+    } catch (e) {
+      // If the response body isn't JSON, return it as-is
+      return responseBody;
+    }
+  }
+
   Future<Map<String, dynamic>> fetchUserCreatedRequests() async {
     final String url = "$_baseUrl/request/my_requests";
 
@@ -166,4 +220,33 @@ class BloodRequestService {
     }
   }
 
+  Future<Map<String, dynamic>> deleteBloodRequest({
+    required int requestId,
+  }) async {
+    final url = Uri.parse("$_baseUrl/request?request_id=$requestId");
+    try {
+      print("Request URL: $url");
+      print("Authorization Header: ${Auth().user!.uid}");
+
+      final response = await http.delete(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${Auth().user!.uid}',
+        },
+      );
+
+      print("Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': 'Request deleted'};
+      } else {
+        return {'success': false, 'message': response.body};
+      }
+    } catch (e) {
+      print("Error: $e");
+      return {'success': false, 'message': e.toString()};
+    }
+  }
 }

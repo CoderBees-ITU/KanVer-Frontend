@@ -54,25 +54,30 @@ class _MyRequestsState extends State<MyRequests> {
       final response = await BloodRequestService().fetchUserDonatedRequests();
       if (response['success'] && mounted) {
         setState(() {
-          _participatedRequests = [];
-          //     (response['data']['requests'] as List).map((json) {
-          //     print(json);
-          //   return BloodRequest(
-          //     title: "${json['patient_name']} için kan isteği",
-          //     age: json['Age'] ?? 0,
-          //     blood: json['Blood_Type'] ?? '',
-          //     amount: json['Donor_Count'] ?? 0,
-          //     time: json['Create_Time'] ?? '',
-          //     progress: (json['On_The_Way_Count'] ?? 0) /
-          //         (json['Donor_Count'] == 0 ? 1 : json['Donor_Count']),
-          //     cityy: json['City'] ?? '',
-          //     districtt: json['District'] ?? '',
-          //     status: json['Status'] ?? '',
-          //     patient_name: json['patient_name'] ?? '',
-          //     patient_surname: json['patient_surname'] ?? '',
-          //     request_id: json['request_id']?.toString() ?? '',
-          //   );
-          // }).toList();
+          print(response['data']);
+          _participatedRequests = (response['data'] as List).map((json) {
+            print(json);
+            return BloodRequest(
+              title: "${json['patient_name']} için kan isteği",
+              age: json['Age'] ?? 0,
+              blood: json['Blood_Type'] ?? '',
+              amount: json['Donor_Count'] ?? 0,
+              time: json['Create_Time'] ?? '',
+              progress: (json['On_The_Way_Count'] ?? 0) /
+                  (json['Donor_Count'] == 0 ? 1 : json['Donor_Count']),
+              cityy: json['City'] ?? '',
+              districtt: json['District'] ?? '',
+              status: json['Status'] ?? '',
+              patient_name: json['patient_name'] ?? '',
+              patient_surname: json['patient_surname'] ?? '',
+              request_id: json['Request_ID']?.toString() ?? '',
+              hospital: json['Hospital'] ?? '',
+              note: json['Note'],
+              lat: json['Lat']?.toString() ?? '',
+              lng: json['Lng']?.toString() ?? '',
+              requestType: "participatedRequest",
+            );
+          }).toList();
         });
       }
     } catch (e) {
@@ -104,7 +109,7 @@ class _MyRequestsState extends State<MyRequests> {
               status: json['Status'] ?? '',
               patient_name: json['patient_name'] ?? '',
               patient_surname: json['patient_surname'] ?? '',
-              request_id: json['request_id']?.toString() ?? '',
+              request_id: json['Request_ID']?.toString() ?? '',
               hospital: json['Hospital'] ?? '',
               note: json['Note'],
               lat: json['Lat']?.toString() ?? '',
@@ -214,8 +219,12 @@ class _MyRequestsState extends State<MyRequests> {
     }
   }
 
-  void _navigateToDetails(BloodRequest request) {
-    Navigator.push(
+  Future<void> _handleReturnFromDetails() async {
+    await _loadInitialData();
+  }
+
+  void _navigateToDetails(BloodRequest request) async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => RequestDetails(
@@ -232,9 +241,15 @@ class _MyRequestsState extends State<MyRequests> {
             double.tryParse(request.lng?.toString() ?? '0') ?? 0.0,
           ),
           type: request.requestType ?? 'bloodRequest',
+          returnFunction: _handleReturnFromDetails,
         ),
       ),
     );
+
+    // If we get a result or pop back, refresh the data
+    if (result == true || result == null) {
+      await _handleReturnFromDetails();
+    }
   }
 }
 
@@ -284,7 +299,8 @@ class BloodRequest {
       blood: json['Blood_Type'] ?? 'Bilinmiyor',
       amount: json['Donor_Count'] ?? 1,
       time: json['Create_Time'] ?? DateTime.now().toIso8601String(),
-      progress: 0.0,
+      progress: (json['On_The_Way_Count'] ?? 0) /
+          (json['Donor_Count'] == 0 ? 1 : json['Donor_Count']),
       cityy: json['City'] ?? 'Bilinmiyor',
       districtt: json['District'] ?? 'Bilinmiyor',
       status: json['Status'] ?? '',
