@@ -56,6 +56,41 @@ class _HomeState extends State<Home> {
       Navigator.pushReplacementNamed(context, '/login');
       return;
     }
+    if (user == null) {
+      Navigator.pushReplacementNamed(context, '/login');
+      return;
+    }
+
+    AuthService().getUserData().then((value) {
+      final user = value['data'];
+      if (user['is_banned']) {
+        showDialog(
+          context: context,
+          barrierDismissible:
+              false, // Prevent closing the dialog by tapping outside
+          builder: (context) => WillPopScope(
+            onWillPop: () async => false, // Disable back button
+            child: AlertDialog(
+              title: Text("Hesabınız Engellenmiştir"),
+              content: Text(
+                  "Hesabınız engellendiği için uygulamayı kullanamazsınız."),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Auth().signOut().then(
+                      (value) {
+                        Navigator.pushReplacementNamed(context, '/login');
+                      },
+                    );
+                  },
+                  child: Text("Çıkış Yap"),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    });
 
     if (!user.emailVerified) {
       _emailVerification();
@@ -87,19 +122,21 @@ class _HomeState extends State<Home> {
         _showError(data['message']);
         return [];
       }
-
+      print(data['data']);
       return List<Map<String, dynamic>>.from(data['data'].map((request) {
-        return {
-          'title': "${request['patient_name']} için kan aranıyor",
-          'age': request['Age'] ?? 0,
-          'blood': request['Blood_Type'] ?? 'N/A',
-          'amount': request['Donor_Count'] ?? 0,
-          'time': DateTime.parse(request['Create_Time'] + 'Z').toLocal(),
-          'progress': request['Status'] ?? 'Unknown',
-          'cityy': request['City'] ?? 'N/A',
-          'districtt': request['District'] ?? 'N/A',
-          'request': request,
-        };
+        if (request['Donor_Count'] > 0 && request['Status'] == 'pending') {
+          return {
+            'title': "${request['patient_name']} için kan aranıyor",
+            'age': request['Age'] ?? 0,
+            'blood': request['Blood_Type'] ?? 'N/A',
+            'amount': request['Donor_Count'] ?? 1,
+            'time': DateTime.parse(request['Create_Time'] + 'Z').toLocal(),
+            'progress': request['Status'] ?? 'Unknown',
+            'cityy': request['City'] ?? 'N/A',
+            'districtt': request['District'] ?? 'N/A',
+            'request': request,
+          };
+        }
       }));
     } catch (e) {
       _showError("İstekler yüklenirken hata oluştu: $e");
@@ -109,12 +146,12 @@ class _HomeState extends State<Home> {
 
   Future<void> _emailVerification() async {
     if (_emailVerificationSent) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              "Doğrulama e-postası zaten gönderildi. Lütfen gelen kutunuzu kontrol edin."),
-        ),
-      );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(
+      //     content: Text(
+      //         "Doğrulama e-postası zaten gönderildi. Lütfen gelen kutunuzu kontrol edin."),
+      //   ),
+      // );
       return;
     }
 
@@ -252,22 +289,22 @@ class _HomeState extends State<Home> {
           );
         },
       ).whenComplete(() {
-          _initializeLocation();
+        _initializeLocation();
       });
     });
   }
 
   void _showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.green),
-    );
+    // ScaffoldMessenger.of(context).showSnackBar(
+    //   SnackBar(content: Text(message), backgroundColor: Colors.green),
+    // );
   }
 
   void _showError(String message) {
     print("Error: $message");
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
+    // ScaffoldMessenger.of(context).showSnackBar(
+    //   SnackBar(content: Text(message), backgroundColor: Colors.red),
+    // );
   }
 
   @override
@@ -516,14 +553,6 @@ class _HomeContentState extends State<HomeContent> {
             return _buildRequestCard(context, _requests![index]);
           },
         ),
-
-        // if (_isInitialLoading) // Show a linear progress indicator at the top
-        //   const Positioned(
-        //     top: 0,
-        //     left: 0,
-        //     right: 0,
-        //     child: LinearProgressIndicator(),
-        //   ),
       ],
     );
   }
@@ -637,8 +666,10 @@ class _HomeContentState extends State<HomeContent> {
               hospitalName: request['request']['Hospital'],
               additionalInfo: request['request']['Note'] ?? '',
               hospitalLocation: LatLng(
-                double.tryParse(request['request']['Lat']?.toString() ?? '0') ?? 0.0,
-                double.tryParse(request['request']['Lng']?.toString() ?? '0') ?? 0.0,
+                double.tryParse(request['request']['Lat']?.toString() ?? '0') ??
+                    0.0,
+                double.tryParse(request['request']['Lng']?.toString() ?? '0') ??
+                    0.0,
               ),
               type: 'bloodRequest',
               returnFunction: _handleReturnFromDetails,
@@ -654,22 +685,20 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
-
-
   Widget _buildFloatingActionButton(BuildContext context) {
     return Align(
       alignment: Alignment.bottomRight,
       child: ElevatedButton(
         onPressed: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const CreateRequestV1()),
-        );
-        
-        if (result == true || result == null) {
-          await _handleReturnFromDetails(); 
-        }
-      },
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CreateRequestV1()),
+          );
+
+          if (result == true || result == null) {
+            await _handleReturnFromDetails();
+          }
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF6B548D),
           shape: RoundedRectangleBorder(
@@ -680,7 +709,6 @@ class _HomeContentState extends State<HomeContent> {
         child: const Icon(Icons.add, size: 24, color: Colors.white),
       ),
     );
-    
   }
 
   void _showFilterModal(BuildContext context) {

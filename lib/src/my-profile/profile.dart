@@ -37,8 +37,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
       print(userData);
     } catch (e) {
-      print('Failed to load user data: $e');
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
     } finally {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -186,8 +190,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ListTile(
                       leading: const Icon(Icons.location_city),
                       title: const Text('Konum'),
-                      subtitle:
-                          Text((userData["City"] ?? "") + " / " + (userData["District"] ?? "")),
+                      subtitle: Text((userData["City"] ?? "") +
+                          " / " +
+                          (userData["District"] ?? "")),
                       onTap: () {
                         _initializeLocation();
                       },

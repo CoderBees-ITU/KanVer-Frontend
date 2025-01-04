@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kanver/services/request_service.dart';
+import 'package:kanver/src/my-request-details/my-request-details.dart';
 import 'package:kanver/src/request-details/requestDetails.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -42,9 +43,11 @@ class _MyRequestsState extends State<MyRequests> {
         _error = 'Veriler yüklenirken bir hata oluştu: $e';
       });
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -114,6 +117,7 @@ class _MyRequestsState extends State<MyRequests> {
               note: json['Note'],
               lat: json['Lat']?.toString() ?? '',
               lng: json['Lng']?.toString() ?? '',
+              onTheWays: json['on_the_ways'],
               requestType: "myRequests",
             );
           }).toList();
@@ -196,6 +200,7 @@ class _MyRequestsState extends State<MyRequests> {
       districtt: request.districtt,
       status: request.status,
       progress: request.progress,
+      requestType: request.requestType,
       onArrowPressed: () => _navigateToDetails(request),
     );
   }
@@ -224,28 +229,48 @@ class _MyRequestsState extends State<MyRequests> {
   }
 
   void _navigateToDetails(BloodRequest request) async {
+    print(request.onTheWays);
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => RequestDetails(
-          patient_name: request.patient_name,
-          patient_surname: request.patient_surname,
-          bloodType: request.blood,
-          request_id: request.request_id,
-          donorAmount: request.amount.toString(),
-          patientAge: request.age,
-          hospitalName: request.hospital,
-          additionalInfo: request.note ?? '',
-          hospitalLocation: LatLng(
-            double.tryParse(request.lat?.toString() ?? '0') ?? 0.0,
-            double.tryParse(request.lng?.toString() ?? '0') ?? 0.0,
-          ),
-          type: request.requestType ?? 'bloodRequest',
-          returnFunction: _handleReturnFromDetails,
-        ),
-      ),
+      MaterialPageRoute(builder: (context) {
+        if (request.requestType == "myRequests") {
+          return MyRequestDetails(
+            patient_name: request.patient_name,
+            patient_surname: request.patient_surname,
+            bloodType: request.blood,
+            request_id: request.request_id,
+            donorAmount: request.amount.toString(),
+            patientAge: request.age,
+            hospitalName: request.hospital,
+            additionalInfo: request.note ?? '',
+            hospitalLocation: LatLng(
+              double.tryParse(request.lat?.toString() ?? '0') ?? 0.0,
+              double.tryParse(request.lng?.toString() ?? '0') ?? 0.0,
+            ),
+            type: request.requestType ?? 'bloodRequest',
+            onTheWays: request.onTheWays,
+            returnFunction: _handleReturnFromDetails,
+          );
+        } else {
+          return RequestDetails(
+            patient_name: request.patient_name,
+            patient_surname: request.patient_surname,
+            bloodType: request.blood,
+            request_id: request.request_id,
+            donorAmount: request.amount.toString(),
+            patientAge: request.age,
+            hospitalName: request.hospital,
+            additionalInfo: request.note ?? '',
+            hospitalLocation: LatLng(
+              double.tryParse(request.lat?.toString() ?? '0') ?? 0.0,
+              double.tryParse(request.lng?.toString() ?? '0') ?? 0.0,
+            ),
+            type: request.requestType ?? 'bloodRequest',
+            returnFunction: _handleReturnFromDetails,
+          );
+        }
+      }),
     );
-
     // If we get a result or pop back, refresh the data
     if (result == true || result == null) {
       await _handleReturnFromDetails();
@@ -271,6 +296,7 @@ class BloodRequest {
   final String? lng;
   final String? note;
   final String? requestType;
+  final List<dynamic>? onTheWays;
 
   const BloodRequest({
     required this.title,
@@ -290,6 +316,7 @@ class BloodRequest {
     this.note,
     this.lat,
     this.lng,
+    this.onTheWays,
   });
 
   factory BloodRequest.fromJson(Map<String, dynamic> json) {
@@ -309,6 +336,7 @@ class BloodRequest {
       request_id: json['Request_ID']?.toString() ?? '0',
       hospital: json['Hospital'] ?? 'Bilinmiyor',
       note: json['Note'],
+      onTheWays: json['On_The_Ways'] ?? [],
     );
   }
 }
@@ -328,6 +356,7 @@ class _CustomCard extends StatelessWidget {
   final String? lat;
   final String? lng;
   final String status;
+  final String? requestType;
 
   const _CustomCard({
     Key? key,
@@ -343,16 +372,24 @@ class _CustomCard extends StatelessWidget {
     required this.cityy,
     required this.districtt,
     required this.status,
+    this.requestType,
     this.lat,
     this.lng,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // If status is 'completed' or 'closed', the card will be non-clickable
+    final bool isCompletedOrClosed =
+        (status == 'completed' || status == 'closed');
+
     return GestureDetector(
-      onTap: onArrowPressed,
+      // Disable clicks if completed or closed
+      onTap: isCompletedOrClosed ? null : onArrowPressed,
       child: Card(
         elevation: 4,
+        // Optionally use a different color if the card is disabled
+        color: isCompletedOrClosed ? Colors.green[100] : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -361,138 +398,180 @@ class _CustomCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Show a top row if the status is 'closed' or 'completed'
               if (status == 'closed')
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Bu istek arşivlenmiştir",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                            color: Color(0xff625B71),
-                            fontFamily: 'Roboto',
-                          ),
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Bu istek arşivlenmiştir",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xff625B71),
+                          fontFamily: 'Roboto',
                         ),
-                        Icon(Icons.check, color: Color(0xff1D1B20), size: 16)
-                      ]),
+                      ),
+                      Icon(Icons.archive, color: Color(0xff1D1B20), size: 16),
+                    ],
+                  ),
+                )
+              else if (status == 'completed')
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        requestType == "participatedRequest"
+                            ? "Bağışınız tamamlanmıştır"
+                            : "İstek tamamlanmıştır",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xff625B71),
+                          fontFamily: 'Roboto',
+                        ),
+                      ),
+                      Icon(Icons.check_circle, color: Colors.green, size: 16),
+                    ],
+                  ),
                 ),
-              Row(
-                children: [
-                  if (status != 'closed')
+              // The progress bar and arrow icon are shown only if NOT closed/completed
+              if (!isCompletedOrClosed)
+                Row(
+                  children: [
                     Expanded(
                       child: LinearProgressIndicator(
                         value: progress,
-                        backgroundColor: Color(0xffE8DEF8),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            Color(0xff65558F)), // Custom progress color
+                        backgroundColor: const Color(0xffE8DEF8),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xff65558F),
+                        ), // Custom progress color
                       ),
                     ),
-                  if (status != 'closed')
                     IconButton(
-                      icon: Icon(
+                      icon: const Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
                         color: Color(0xff1E1E1E),
                       ),
                       onPressed: onArrowPressed,
                     ),
-                ],
-              ),
+                  ],
+                ),
               Row(
                 children: [
                   icon,
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       title,
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: 'Roboto',
-                          color: Color(0xff1D1A20)),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Roboto',
+                        color: Color(0xff1D1A20),
+                      ),
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 4),
-              Row(children: [
-                Text(
-                  'Hasta Yaşı: ',
-                  style: TextStyle(
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Text(
+                    'Hasta Yaşı: ',
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       fontFamily: 'Roboto',
-                      color: Color(0xff1D1A20)),
-                ),
-                Text(age.toString()),
-              ]),
-              SizedBox(height: 4),
-              Row(children: [
-                Text(
-                  'Kan Grubu: ',
-                  style: TextStyle(
+                      color: Color(0xff1D1A20),
+                    ),
+                  ),
+                  Text(age.toString()),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Text(
+                    'Kan Grubu: ',
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       fontFamily: 'Roboto',
-                      color: Color(0xff1D1A20)),
-                ),
-                Text(blood),
-              ]),
-              SizedBox(height: 4),
-              Row(children: [
-                Text(
-                  'İl: ',
-                  style: TextStyle(
+                      color: Color(0xff1D1A20),
+                    ),
+                  ),
+                  Text(blood),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Text(
+                    'İl: ',
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       fontFamily: 'Roboto',
-                      color: Color(0xff1D1A20)),
-                ),
-                Text(cityy),
-              ]),
-              SizedBox(height: 4),
-              Row(children: [
-                Text(
-                  'İlçe: ',
-                  style: TextStyle(
+                      color: Color(0xff1D1A20),
+                    ),
+                  ),
+                  Text(cityy),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Text(
+                    'İlçe: ',
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       fontFamily: 'Roboto',
-                      color: Color(0xff1D1A20)),
-                ),
-                Text(districtt),
-              ]),
-              SizedBox(height: 4),
+                      color: Color(0xff1D1A20),
+                    ),
+                  ),
+                  Text(districtt),
+                ],
+              ),
+              const SizedBox(height: 4),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Left side: 'İstenen Donör'
                   Expanded(
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: Row(children: [
-                        Text(
-                          'İstenen Donör: ',
-                          style: TextStyle(
+                      child: Row(
+                        children: [
+                          const Text(
+                            'İstenen Donör: ',
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                               fontFamily: 'Roboto',
-                              color: Color(0xff1D1A20)),
-                        ),
-                        Text(amount.toString()),
-                      ]),
+                              color: Color(0xff1D1A20),
+                            ),
+                          ),
+                          Text(amount.toString()),
+                        ],
+                      ),
                     ),
                   ),
+                  // Right side: time
                   Expanded(
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.access_time, size: 14),
-                          SizedBox(width: 4),
+                          const Icon(Icons.access_time, size: 14),
+                          const SizedBox(width: 4),
                           Text(time),
                         ],
                       ),
@@ -500,7 +579,7 @@ class _CustomCard extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
             ],
           ),
         ),
