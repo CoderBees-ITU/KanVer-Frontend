@@ -76,7 +76,10 @@ class BloodRequestService {
       query += "district=$district&";
     }
     if (bloodType != "Tümü") {
-      query += "blood_type=$bloodType&";
+      String tempBloodType;
+      tempBloodType = bloodType.replaceAll("+", "p");
+      tempBloodType = tempBloodType.replaceAll("-", "n");
+      query += "blood_type=$tempBloodType&";
     }
 
     final url = Uri.parse("$_baseUrl/request/personalized$query");
@@ -249,4 +252,41 @@ class BloodRequestService {
       return {'success': false, 'message': e.toString()};
     }
   }
+
+Future<Map<String, dynamic>> setCompletedOnTheWay({
+    required int onTheWayId,
+    required int requestId,
+  }) async {
+    final url = Uri.parse("$_baseUrl/on_the_way/$onTheWayId");
+    try {
+      print(onTheWayId);
+      print(requestId);
+
+
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${Auth().user!.uid}',
+        },
+        body: jsonEncode({
+          'status': 'completed',
+          'request_id': requestId,
+        }),
+      );
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': 'Request deleted'};
+      } else {
+        return {'success': false, 'message': response.body};
+      }
+    } catch (e) {
+      print("Error: $e");
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+
+
+
+
 }

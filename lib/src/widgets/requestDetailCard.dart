@@ -32,33 +32,37 @@ class CustomCard extends StatelessWidget {
             ),
           ),
           SizedBox(width: 15), // Gap of 10 pixels
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xff49454F),
-                  fontWeight: FontWeight.w500,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xff49454F),
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              Text(
-                desc,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Color(0xff6750A4),
+                Text(
+                  desc,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Color(0xff6750A4),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          Spacer(),
+       
           additionalIcon ?? Container(
             width: 30,
             height: 30,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(11),
-              color: Color(0xffFEF7FF),
+              color: Color(0xffFfFfFF),
             ),
             child: Center(
               child: additionalIcon
