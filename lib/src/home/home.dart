@@ -124,19 +124,17 @@ class _HomeState extends State<Home> {
       }
       print(data['data']);
       return List<Map<String, dynamic>>.from(data['data'].map((request) {
-        if (request['Donor_Count'] > 0 && request['Status'] == 'pending') {
-          return {
-            'title': "${request['patient_name']} için kan aranıyor",
-            'age': request['Age'] ?? 0,
-            'blood': request['Blood_Type'] ?? 'N/A',
-            'amount': request['Donor_Count'] ?? 1,
-            'time': DateTime.parse(request['Create_Time'] + 'Z').toLocal(),
-            'progress': request['Status'] ?? 'Unknown',
-            'cityy': request['City'] ?? 'N/A',
-            'districtt': request['District'] ?? 'N/A',
-            'request': request,
-          };
-        }
+        return {
+          'title': "${request['patient_name']} için kan aranıyor",
+          'age': request['Age'] ?? 0,
+          'blood': request['Blood_Type'] ?? 'N/A',
+          'amount': request['Donor_Count'] ?? 1,
+          'time': DateTime.parse(request['Create_Time'] + 'Z').toLocal(),
+          'progress': request['Status'] ?? 'Unknown',
+          'cityy': request['City'] ?? 'N/A',
+          'districtt': request['District'] ?? 'N/A',
+          'request': request,
+        };
       }));
     } catch (e) {
       _showError("İstekler yüklenirken hata oluştu: $e");
