@@ -10,44 +10,48 @@ KanVer is a mobile application that connects blood donors with those in need. Th
 ---
 
 ## 📷 **Screenshots**
-<p align="center" style="display: flex;">
-  <div style="display: inline-block; text-align: center; margin: 10px;" width="22%">
-    <img src="readme-source/screenshot-1.png"/>
-    <br>
-    <b>Home Screen</b>  
-    <br>
-    Personalized homepage of the application showing open requests.
-  </div>
-  <div style="display: inline-block; text-align: center; margin: 10px;" width="22%">
-    <img src="readme-source/screenshot-2.png"/>
-    <br>
-    <b>Request Details</b>  
-    <br>
-    Request details and the location of the hospital on Google Maps.
-  </div>
-  <div style="display: inline-block; text-align: center; margin: 10px;" width="22%">
-    <img src="readme-source/screenshot-3.png" />
-    <br>
-    <b>My Requests</b>  
-    <br>
-    "My Requests" page showing the requests the user has donated or created.
-  </div>
-  <div style="display: inline-block; text-align: center; margin: 10px;" width="22%">
-    <img src="readme-source/screenshot-4.png" />
-    <br>
-    <b>Create Request</b>  
-    <br>
-    "Add Request" page, hospital names are taken from Google Maps API with City and District values.
-  </div>
-</p>
+## 📷 Screenshots
+
+<table>
+  <tr>
+    <td align="center" width="25%">
+      <img src="readme-source/screenshot-1.png" width="200px"/>
+      <br>
+      <b>Home Screen</b>
+      <br>
+      Personalized homepage of the application showing open requests.
+    </td>
+    <td align="center" width="25%">
+      <img src="readme-source/screenshot-2.png" width="200px"/>
+      <br>
+      <b>Request Details</b>
+      <br>
+      Request details and the location of the hospital on Google Maps.
+    </td>
+    <td align="center" width="25%">
+      <img src="readme-source/screenshot-3.png" width="200px"/>
+      <br>
+      <b>My Requests</b>
+      <br>
+      "My Requests" page showing the requests the user has donated or created.
+    </td>
+    <td align="center" width="25%">
+      <img src="readme-source/screenshot-4.png" width="200px"/>
+      <br>
+      <b>Create Request</b>
+      <br>
+      "Add Request" page, hospital names are taken from Google Maps API with City and District values.
+    </td>
+  </tr>
+</table>
+
 
 ## 🎥 **Demo Video**
 
 <p align="center">
-  <video width="60%" controls>
-    <source src="https://drive.google.com/file/d/1lBCDB0_DGV-sGYbuEYDGd84O0Bh3dp9P/view?usp=sharing" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
+  <a href="https://drive.google.com/file/d/1lBCDB0_DGV-sGYbuEYDGd84O0Bh3dp9P/view">
+    <img src="https://drive.google.com/thumbnail?id=1lBCDB0_DGV-sGYbuEYDGd84O0Bh3dp9P" alt="Watch the Demo" width="50%">
+  </a>
 </p>
 
 ---
