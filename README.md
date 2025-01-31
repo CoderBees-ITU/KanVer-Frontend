@@ -10,7 +10,6 @@ KanVer is a mobile application that connects blood donors with those in need. Th
 ---
 
 ## 📷 **Screenshots**
-## 📷 Screenshots
 
 <table>
   <tr>
