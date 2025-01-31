@@ -10,8 +10,7 @@ KanVer is a mobile application that connects blood donors with those in need. Th
 ---
 
 ## 📷 **Screenshots**
-
-<p align="center">
+<p align="center" style="display: flex;">
   <div style="display: inline-block; text-align: center; margin: 10px;">
     <img src="readme-source/screenshot-1.png" width="22%"/>
     <br>
@@ -31,14 +30,14 @@ KanVer is a mobile application that connects blood donors with those in need. Th
     <br>
     <b>My Requests</b>  
     <br>
-    “My Requests” page showing the requests the user has donated or created.
+    "My Requests" page showing the requests the user has donated or created.
   </div>
   <div style="display: inline-block; text-align: center; margin: 10px;">
     <img src="readme-source/screenshot-4.png" width="22%"/>
     <br>
     <b>Create Request</b>  
     <br>
-    “Add Request” page, hospital names are taken from Google Maps API with City and District values.
+    "Add Request" page, hospital names are taken from Google Maps API with City and District values.
   </div>
 </p>
 
@@ -46,7 +45,7 @@ KanVer is a mobile application that connects blood donors with those in need. Th
 
 <p align="center">
   <video width="60%" controls>
-    <source src="readme-source/demo.mp4" type="video/mp4">
+    <source src="https://drive.google.com/file/d/1lBCDB0_DGV-sGYbuEYDGd84O0Bh3dp9P/view?usp=sharing" type="video/mp4">
     Your browser does not support the video tag.
   </video>
 </p>
@@ -101,6 +100,18 @@ KanVer is a mobile application that connects blood donors with those in need. Th
 
 5. Run the application:  
    `flutter run`  
+
+---
+
+## 🔗 Related Repositories
+Here are the related repositories for different components of the **KanVer** project:
+
+| Repository | Description |
+|------------|------------|
+| [KanVer Admin Panel (Frontend)](https://github.com/CoderBees-ITU/Kanver-AdminFrontend) | ReactJS-based admin panel for managing blood donation requests. |
+| [KanVer UI/UX Design](https://github.com/CoderBees-ITU/KanVer-Design) | UI/UX design files and prototypes for the mobile and web applications. |
+| [KanVer Mail Template](https://github.com/CoderBees-ITU/KanVer-Mail-Template) | Predefined email templates used for notifications in the KanVer system. |
+| [KanVer Backend](https://github.com/CoderBees-ITU/Kanver-Backend) | Flask-based backend handling API requests, authentication, and database operations. |
 
 ---
 
