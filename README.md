@@ -1,16 +1,120 @@
-# kanver
+# 🩸 KanVer - Blood Donation App
 
-A new Flutter project.
+KanVer is a mobile application that connects blood donors with those in need. The app allows users to create blood donation requests, find suitable donors, and receive location-based notifications. 
 
-## Getting Started
+📱 **Platform:** Flutter (iOS & Android)  
+🌐 **Backend:** Flask (Python)  
+☁️ **Database:** MySQL on AWS  
+🔑 **Authentication:** Firebase  
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+## 📷 **Screenshots**
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+<p align="center">
+  <div style="display: inline-block; text-align: center; margin: 10px;">
+    <img src="readme-source/screenshot-1.png" width="22%"/>
+    <br>
+    <b>Home Screen</b>  
+    <br>
+    Personalized homepage of the application showing open requests.
+  </div>
+  <div style="display: inline-block; text-align: center; margin: 10px;">
+    <img src="readme-source/screenshot-2.png" width="22%"/>
+    <br>
+    <b>Request Details</b>  
+    <br>
+    Request details and the location of the hospital on Google Maps.
+  </div>
+  <div style="display: inline-block; text-align: center; margin: 10px;">
+    <img src="readme-source/screenshot-3.png" width="22%"/>
+    <br>
+    <b>My Requests</b>  
+    <br>
+    “My Requests” page showing the requests the user has donated or created.
+  </div>
+  <div style="display: inline-block; text-align: center; margin: 10px;">
+    <img src="readme-source/screenshot-4.png" width="22%"/>
+    <br>
+    <b>Create Request</b>  
+    <br>
+    “Add Request” page, hospital names are taken from Google Maps API with City and District values.
+  </div>
+</p>
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🎥 **Demo Video**
+
+<p align="center">
+  <video width="60%" controls>
+    <source src="readme-source/demo.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</p>
+
+---
+
+## 🚀 **Features**
+- **User Registration & Login:** Firebase Authentication-based login system.
+- **Create Blood Donation Requests:** Users can create blood donation requests based on their needs.
+- **Blood Type Matching:** The system matches users with compatible blood donors.
+- **Map Integration:** Displays nearby hospitals and donation points using Google Maps API.
+- **Proximity-Based Notifications:** Users receive email notifications based on their location.
+- **Donation Tracking:** Users can track their past donations and requests.
+- **Admin Panel:** A ReactJS-based panel for administrators to manage requests.
+
+---
+
+## 🛠 **Technologies Used**
+| **Component** | **Technology** |
+|-------------|--------------|
+| **Mobile Application** | Flutter |
+| **API Usage** | Google Maps API, TC ID Verification API |
+| **Notification System** | Brevo Mail API |
+| **Database** | MySQL (AWS) |
+| **Backend** | Flask (Python) |
+| **Server Hosting** | Google Cloud |
+| **Admin Panel** | ReactJS |
+| **Authentication** | Firebase Authentication |
+
+---
+
+## 🔧 **Setup & Installation**
+
+### 📌 **Requirements**
+- Flutter SDK (`>=3.5.4`)
+- Firebase account
+
+### 🛠 **Starting the Flutter Project**
+1. Clone the repository:  
+   `git clone https://github.com/your-repo/kanver.git`  
+   `cd kanver`  
+
+2. Install dependencies:  
+   `flutter pub get`  
+
+3. Configure Firebase:  
+   - Download the `google-services.json` file from the Firebase Console and place it in `android/app/`.  
+   - Download the `GoogleService-Info.plist` file from the Firebase Console and place it in `ios/Runner/`.  
+
+4. Set the Backend API URL:  
+   - Update the `API_URL` variable in `lib/utils/constants.dart` with the backend URL.
+
+5. Run the application:  
+   `flutter run`  
+
+---
+
+## 📧 Contact & Team Members
+| **Name** | **Role** | **Email** |
+|----------|----------------------------------------------|---------------------------|
+| **Nurefşan Altın** | Mobile Developer | altinn21@itu.edu.tr |
+| **Bünyamin Korkut** | Mobile & Backend Developer | krktbunyamin@gmail.com |
+| **Mehmetcan Kul** | Backend Developer & Mail Notification Integration Specialist | kul21@itu.edu.tr |
+| **Mustafa Yunus Diler** | Backend Developer & Testing Engineer | diler21@itu.edu.tr |
+| **Samet Birol** | UI/UX Designer, DevOps & Testing Engineer | birol21@itu.edu.tr |
+| **Ege Keklikçi** | Backend & Web Frontend Developer, Database Manager | keklikci23@itu.edu.tr |
+| **Mehmet Onur Şahin** | Backend Developer | sahinme21@itu.edu.tr |
+
+---
+
+🎯 **KanVer - One Step Closer to Saving Lives!** 🚀

@@ -3,28 +3,28 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyC6lDBfQpOLFaRwCOOrYD5rrBQiE3oO9Q0</string>
+	<string>{API_KEY}</string>
 	<key>GCM_SENDER_ID</key>
-	<string>532415059799</string>
+	<string>{GCM_SENDER_ID}</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.kanver</string>
+	<string>{BUNDLE_ID}</string>
 	<key>PROJECT_ID</key>
-	<string>test-kanver</string>
+	<string>{PROJECT_ID}</string>
 	<key>STORAGE_BUCKET</key>
-	<string>test-kanver.firebasestorage.app</string>
+	<string>{STORAGE_BUCKET}</string>
 	<key>IS_ADS_ENABLED</key>
-	<false></false>
+	<false/>
 	<key>IS_ANALYTICS_ENABLED</key>
-	<false></false>
+	<false/>
 	<key>IS_APPINVITE_ENABLED</key>
-	<true></true>
+	<true/>
 	<key>IS_GCM_ENABLED</key>
-	<true></true>
+	<true/>
 	<key>IS_SIGNIN_ENABLED</key>
-	<true></true>
+	<true/>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:532415059799:ios:18299fc108a77ea5369012</string>
+	<string>{GOOGLE_APP_ID}</string>
 </dict>
 </plist>

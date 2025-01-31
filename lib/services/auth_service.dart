@@ -2,12 +2,11 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:kanver/utils/constants.dart';
 
 class AuthService {
   // Base URL for the backend
-
-  final String _baseUrl =
-      "https://kanver-backend-93774604105.us-central1.run.app";
+  final String _baseUrl = Constants.API_URL;
 
   // Login function
   Future<Map<String, dynamic>> login(String tc, String password) async {

@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "532415059799",
-    "project_id": "test-kanver",
-    "storage_bucket": "test-kanver.firebasestorage.app"
+    "project_number": "{PROJECT_NUMBER}",
+    "project_id": "{PROJECT_ID}",
+    "storage_bucket": "{STORAGE_BUCKET}"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:532415059799:android:b118764cb7fc7235369012",
+        "mobilesdk_app_id": "{MOBILE_SDK_APP_ID}",
         "android_client_info": {
-          "package_name": "com.example.kanver"
+          "package_name": "{PACKAGE_NAME}"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyC8DGDbUjJCPO05F6Ve4cmDk2IwE4ULj3Q"
+          "current_key": "{API_KEY}"
         }
       ],
       "services": {

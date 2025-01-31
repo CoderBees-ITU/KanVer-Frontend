@@ -2,10 +2,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:kanver/services/auth_service.dart';
+import 'package:kanver/utils/constants.dart';
 
 class BloodRequestService {
-  final String _baseUrl =
-      "https://kanver-backend-93774604105.us-central1.run.app";
+  final String _baseUrl = Constants.API_URL;
 
   Future<Map<String, dynamic>> createBloodRequest({
     required int patientTcId,
