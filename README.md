@@ -89,8 +89,8 @@ KanVer is a mobile application that connects blood donors with those in need. Th
 
 ### 🛠 **Starting the Flutter Project**
 1. Clone the repository:  
-   `git clone https://github.com/your-repo/kanver.git`  
-   `cd kanver`  
+   `git clone https://github.com/CoderBees-ITU/KanVer-Frontend.git`  
+   `cd KanVer-Frontend`  
 
 2. Install dependencies:  
    `flutter pub get`  
