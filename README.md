@@ -11,29 +11,29 @@ KanVer is a mobile application that connects blood donors with those in need. Th
 
 ## 📷 **Screenshots**
 <p align="center" style="display: flex;">
-  <div style="display: inline-block; text-align: center; margin: 10px;">
-    <img src="readme-source/screenshot-1.png" width="22%"/>
+  <div style="display: inline-block; text-align: center; margin: 10px;" width="22%">
+    <img src="readme-source/screenshot-1.png"/>
     <br>
     <b>Home Screen</b>  
     <br>
     Personalized homepage of the application showing open requests.
   </div>
-  <div style="display: inline-block; text-align: center; margin: 10px;">
-    <img src="readme-source/screenshot-2.png" width="22%"/>
+  <div style="display: inline-block; text-align: center; margin: 10px;" width="22%">
+    <img src="readme-source/screenshot-2.png"/>
     <br>
     <b>Request Details</b>  
     <br>
     Request details and the location of the hospital on Google Maps.
   </div>
-  <div style="display: inline-block; text-align: center; margin: 10px;">
-    <img src="readme-source/screenshot-3.png" width="22%"/>
+  <div style="display: inline-block; text-align: center; margin: 10px;" width="22%">
+    <img src="readme-source/screenshot-3.png" />
     <br>
     <b>My Requests</b>  
     <br>
     "My Requests" page showing the requests the user has donated or created.
   </div>
-  <div style="display: inline-block; text-align: center; margin: 10px;">
-    <img src="readme-source/screenshot-4.png" width="22%"/>
+  <div style="display: inline-block; text-align: center; margin: 10px;" width="22%">
+    <img src="readme-source/screenshot-4.png" />
     <br>
     <b>Create Request</b>  
     <br>
